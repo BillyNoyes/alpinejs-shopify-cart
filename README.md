@@ -2,7 +2,7 @@
 
 A headless, reactive `$cart` magic for Alpine.js, powered by Shopify's standard storefront events and actions.
 
-> **Status:** Planning and early development. No package has been published yet, and the proposed API may change before the first release.
+> **Status:** Active early development. The first working plugin implementation is available in the repository, but no npm package has been published yet and the API may change before the first release.
 
 ## Why
 
@@ -58,14 +58,17 @@ $cart.lines
 $cart.totalQuantity
 $cart.cost
 $cart.discountCodes
+$cart.note
+$cart.attributes
 $cart.pending
+$cart.pendingCount
 $cart.pendingOperation
 $cart.error
 $cart.userErrors
 $cart.warnings
 ```
 
-`$cart.cart` will retain Shopify's standard cart summary shape. Convenience getters such as `lines`, `totalQuantity`, and `cost` will not replace or reshape the underlying response.
+`$cart.cart` retains Shopify's standard cart summary shape. Convenience getters such as `lines`, `totalQuantity`, and `cost` do not replace or reshape the underlying response. The standard summary intentionally omits product titles, images, and full merchandise objects; themes should render those through Liquid or another product-data source.
 
 ### Read and display the cart
 
@@ -138,7 +141,7 @@ await $cart.setAttributes([{ key: 'Gift wrap', value: 'Yes' }])
 await $cart.setDiscountCodes(['WELCOME10'])
 ```
 
-These methods will delegate to `Shopify.actions.updateCart()` rather than maintaining a second cart implementation.
+These methods delegate to `Shopify.actions.updateCart()` rather than maintaining a second cart implementation. `setAttributes()` and `setDiscountCodes()` send complete replacement sets, matching Shopify's standard action contract. Advanced consumers can pass a complete standard payload through `$cart.mutate(payload, options)`.
 
 ### Open the cart
 
@@ -218,10 +221,12 @@ The plugin should remain focused enough for storefront use, with no UI framework
 
 The initial package targets:
 
-- Shopify Liquid storefronts
+- Shopify Liquid storefronts with standard storefront actions
 - Alpine.js 3
 - Modern evergreen browsers
-- ES module and CDN usage
+- ES module, CommonJS, and CDN usage
+
+Standard actions become available after `DOMContentLoaded`. The plugin registers its event listeners during Alpine setup, waits for that lifecycle point, and then initializes state through `Shopify.actions.getCart()`.
 
 It does not target:
 
@@ -244,7 +249,7 @@ It does not target:
 
 ## Development plan
 
-See [PLAN.md](./PLAN.md) for the proposed architecture, milestones, testing strategy, and release criteria.
+See [PLAN.md](./PLAN.md) for the proposed architecture, milestones, testing strategy, and release criteria. The exact platform assumptions used by the implementation are recorded in [Shopify standard cart contract](./docs/SHOPIFY_STANDARD_CONTRACT.md).
 
 ## Contributing
 

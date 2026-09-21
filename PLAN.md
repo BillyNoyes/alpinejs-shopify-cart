@@ -6,6 +6,23 @@ Build a small Alpine.js plugin that exposes Shopify's standard cart actions and 
 
 The plugin should let theme authors read cart state, perform cart operations, and receive cart updates without intercepting network requests, depending on theme-specific markup, or implementing the cart protocol themselves.
 
+## Current progress
+
+The initial implementation now includes:
+
+- ESM, CommonJS, and CDN builds
+- A shared `shopifyCart` Alpine store exposed as `$cart`
+- Deferred initialization at `DOMContentLoaded`
+- `getCart`, `updateCart`, and `openCart` adapters
+- Read, add, update, remove, note, attribute, and discount methods
+- Standard cart event synchronization
+- Serialized local mutations and stale-result protection
+- Separate rejected errors, user errors, and warnings
+- Unit, package, and Playwright browser tests
+- TypeScript declarations and CI configuration
+
+The next critical validation step is running the implementation on a real Liquid storefront with Shopify's development standard-events runtime and inspector. The package should not be published as stable until that contract test is complete.
+
 ## Product principles
 
 1. **Use Shopify's standard interface.** Delegate reads and writes to `Shopify.actions` and consume standard `shopify:cart:*` events.
@@ -66,7 +83,7 @@ The exact argument shapes must be confirmed against Shopify's standard action sc
 Register one reactive Alpine store and expose it through a magic:
 
 ```text
-Alpine.store('cart')
+Alpine.store('shopifyCart')
         │
         └── Alpine.magic('cart')
 ```
