@@ -1,0 +1,11 @@
+# Alpine Shopify Cart
+
+A headless Alpine.js plugin providing the $cart magic for Shopify Liquid storefronts. Independent project by Billy Noyes, MIT licensed. Early development; not published on npm.
+
+- [Documentation](https://billynoyes.github.io/alpinejs-shopify-cart/docs/)
+- [Source](https://github.com/BillyNoyes/alpinejs-shopify-cart)
+- [Compatibility fixes](https://github.com/BillyNoyes/alpinejs-shopify-cart/pull/2)
+
+Uses Shopify.actions.getCart(), updateCart(), and openCart(). Observes standard shopify:cart events. No request interception, default action overrides, cart drawer markup, or analytics. Methods return promises; handle rejected errors separately from resolved userErrors and warnings.
+
+The landing demo uses the actual plugin with an in-memory transport. It does not connect to Shopify or place orders.
