@@ -39,7 +39,6 @@
 <h1>Documentation</h1>
 <p class="lede">One reactive cart. From the first add to the next update.</p>
 <section id="getting-started" tabindex="-1"><h2>A cart shared across your theme.</h2><p><code>$cart</code> gives Alpine components a shared, reactive view of a Shopify cart. Reads, writes, and opening the cart go through Shopify’s standard storefront actions. The theme stays in charge of its HTML and cart presentation.</p>
-<div class="note"><p><strong>Development preview.</strong> The package is not published on npm. Build from source to try it. <a href="https://github.com/BillyNoyes/alpinejs-shopify-cart/pull/2">Live-store compatibility fixes in PR #2</a> are separate from the initial implementation on main; the setup below pins the tested revision.</p></div>
 <p>You need Alpine.js 3 and a Shopify Liquid storefront with <code>Shopify.actions</code>. This is not a headless Storefront API client, a Shopify Admin integration, or a checkout extension.</p></section><section id="installation" tabindex="-1"><h2>Install from source</h2><p>Until a package release is available, build the repository locally. This revision includes the action-readiness and cart-line compatibility fixes.</p><div class="code-block" x-data="copyCode($el)">
 <div class="code-toolbar"><span>Terminal</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Terminal">Copy</button></div>
 <pre tabindex="0" aria-label="Terminal"><code>git clone https://github.com/BillyNoyes/alpinejs-shopify-cart.git

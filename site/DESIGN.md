@@ -21,7 +21,7 @@ A precise, monochrome developer site. Use typography, alignment, working example
 - Outer gutters: 12px, becoming 20px at 768px. Main content: 1152px maximum, matching Easel's max-w-6xl.
 - Desktop home: two equal tracks with a 64px gutter; vertically centered between the header and footer.
 - Home uses min-height: 100dvh and fits normal desktop heights without hiding overflow. Short or zoomed viewports can scroll instead of losing content. Mobile stacks content and scrolls naturally.
-- Docs: 208px navigation, 48px gutter, article up to 768px. Native disclosure for mobile navigation, static links without JavaScript.
+- Docs: 208px navigation at the far-left outer gutter, 48px column gap, main content up to 1152px centered in the remaining track. Prose stays at a readable 68ch while code and tables can fill the content container. Native disclosure for mobile navigation, static links without JavaScript.
 - Inter heading: 700, negative tracking no tighter than -0.035em. Body: 16px. Code: 13px. Controls: 14px.
 - Light: #fafafa canvas, #202020 text. Dark: #111111 canvas, #ededed text. Secondary text and borders are semantic CSS variables.
 - Corners: 6px controls and code blocks, 8px demo grouping. No shadows, gradients, brand imitation, or theme toggle.

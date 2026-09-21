@@ -34,7 +34,7 @@ No custom domain has been configured. Vite uses a relative base so assets work b
 
 ## Content maintenance
 
-The package is not published on npm. Installation examples currently build the live-tested revision from PR #2. Update these examples, the development notice, and `public/llms.txt` when a release becomes available. Do not introduce an npm/CDN install command before verifying that version exists.
+The package is not published on npm. Installation examples currently build the live-tested revision from the merged PR #2. Update these examples and `public/llms.txt` when a release becomes available. Do not introduce an npm/CDN install command before verifying that version exists.
 
 The docs describe known limitations such as default Shopify action reloads, snapshot-derived quantities, and disposal semantics. Preserve these qualifiers when editing.
 

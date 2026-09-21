@@ -105,8 +105,8 @@
   .demo-status { min-height: 22px; margin-top: .75rem; font-size: .75rem; color: var(--muted); }
   .site-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .75rem 2rem; padding-block: 1.25rem; font-size: .75rem; color: var(--muted); }
   .site-footer a { color: inherit; text-decoration: underline; }
-  .docs-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; max-width: 72rem; margin: 2rem auto 5rem; }
-  .docs-grid > main { min-width: 0; }
+  .docs-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; margin: 2rem auto 5rem; }
+  .docs-grid > main { min-width: 0; width: 100%; max-width: 72rem; margin-inline: auto; }
   .docs-sidebar { min-width: 0; }
   .nav-filter { margin-block: 1rem .75rem; }
   .nav-filter label { display: block; color: var(--muted); font-size: .75rem; margin-bottom: .5rem; }
@@ -116,7 +116,7 @@
   .docs-nav a:hover, .docs-nav a[aria-current=location] { background: var(--surface); color: var(--ink); }
   .no-results { color: var(--muted); font-size: .875rem; padding: .5rem .75rem; }
   .docs-sidebar summary { font-size: .875rem; padding-block: .5rem; }
-  .docs-article { min-width: 0; max-width: 48rem; }
+  .docs-article { min-width: 0; }
   .docs-article h1 { font-size: 2.5rem; line-height: 1.2; letter-spacing: -.03em; font-weight: 700; }
   .docs-article section { scroll-margin-top: 2rem; margin-top: 4rem; }
   .docs-article h2 { font-size: 1.5rem; letter-spacing: -.02em; font-weight: 700; margin-bottom: 1rem; }

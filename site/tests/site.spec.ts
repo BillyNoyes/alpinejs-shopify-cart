@@ -56,6 +56,12 @@ for (const colorScheme of ['light', 'dark'] as const) {
       page.on('pageerror', error => errors.push(error.message));
       await page.goto('./docs/');
       await expect(page.getByRole('heading', { name: 'Documentation', exact: true })).toBeVisible();
+      await expect(page.getByText('Development preview.', { exact: true })).toHaveCount(0);
+      if (width >= 1024) {
+        const sidebar = await page.locator('.docs-sidebar').boundingBox();
+        expect(sidebar!.x).toBe(20);
+        expect(await page.locator('#main').evaluate(el => getComputedStyle(el).maxWidth)).toBe('1152px');
+      }
       if (width < 1024) await page.getByText('On this page', { exact: true }).click();
       const links = page.locator('.docs-nav a');
       const first = await links.nth(0).boundingBox();
