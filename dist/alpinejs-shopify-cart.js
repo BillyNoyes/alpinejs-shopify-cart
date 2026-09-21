@@ -229,17 +229,20 @@
       attachListeners();
       const refresh = () => {
         removeReadyListener();
-        removeReadyListener = () => {
-        };
-        store.refresh().catch(() => {
-        });
+        const timer = setTimeout(() => {
+          removeReadyListener = () => {
+          };
+          if (!disposed) store.refresh().catch(() => {
+          });
+        }, 0);
+        removeReadyListener = () => clearTimeout(timer);
       };
       const target = getDocument();
       if (target?.readyState === "loading") {
         target.addEventListener("DOMContentLoaded", refresh, { once: true });
         removeReadyListener = () => target.removeEventListener("DOMContentLoaded", refresh);
       } else {
-        queueMicrotask(refresh);
+        refresh();
       }
     };
     return {
@@ -254,7 +257,9 @@
       warnings: [],
       detail: void 0,
       get lines() {
-        return this.cart?.lines ?? [];
+        const lines = this.cart?.lines;
+        if (Array.isArray(lines)) return lines;
+        return lines?.nodes ?? [];
       },
       get totalQuantity() {
         return this.cart?.totalQuantity ?? 0;

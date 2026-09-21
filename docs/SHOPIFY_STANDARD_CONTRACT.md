@@ -148,7 +148,18 @@ interface CartSummary {
         currencyCode: string
       }
     }
-  }>
+  }> | {
+    nodes: Array<{
+      id: string
+      quantity: number
+      cost: {
+        totalAmount: {
+          amount: string
+          currencyCode: string
+        }
+      }
+    }>
+  }
   discountCodes: Array<{
     applicable: boolean
     code: string
@@ -157,6 +168,8 @@ interface CartSummary {
 ```
 
 It does not include product titles, images, or full merchandise objects. The plugin must not claim those fields are available from the standard action contract.
+
+Shopify's documentation currently describes `lines` as `CartLine[]`, while the live standard-actions runtime on `billy-spark-dev.myshopify.com` returned a Storefront-style `{ nodes: CartLine[] }` connection during integration testing. The plugin preserves the raw `cart.lines` value and normalizes both representations through `$cart.lines`.
 
 ## Events
 

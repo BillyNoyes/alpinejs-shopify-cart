@@ -136,6 +136,24 @@ test('registers an idempotent $cart magic and loads the initial cart', async () 
   assert.equal(store.pending, false);
 });
 
+test('normalizes the runtime cart line connection for Alpine consumers', async () => {
+  const line = {
+    id: 'gid://shopify/CartLine/1',
+    quantity: 1,
+    cost: { totalAmount: { amount: '10', currencyCode: 'USD' } },
+  };
+  const { store } = await setup({
+    actions: {
+      async getCart() {
+        return { cart: cart(1, { nodes: [line] }) };
+      },
+    },
+  });
+
+  assert.deepEqual(store.cart.lines, { nodes: [line] });
+  assert.deepEqual(store.lines, [line]);
+});
+
 test('waits until DOMContentLoaded before using Shopify actions', async () => {
   const document = new FakeDocument('loading');
   let reads = 0;
@@ -169,6 +187,38 @@ test('waits until DOMContentLoaded before using Shopify actions', async () => {
 
   assert.equal(reads, 1);
   assert.equal(Alpine.store(STORE_NAME).ready, true);
+});
+
+test('waits for later DOMContentLoaded listeners to install Shopify actions', async () => {
+  const document = new FakeDocument('loading');
+  const window = { Shopify: {} };
+  const Alpine = createAlpine();
+
+  createPlugin({
+    getWindow: () => window,
+    getDocument: () => document,
+  })(Alpine);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    window.Shopify.actions = {
+      async getCart() {
+        return { cart: cart(1) };
+      },
+      async updateCart() {
+        return { cart: cart(1) };
+      },
+      async openCart() {},
+    };
+  });
+
+  document.readyState = 'interactive';
+  document.dispatchEvent(new Event('DOMContentLoaded'));
+  await nextTurn();
+  await nextTurn();
+
+  assert.equal(Alpine.store(STORE_NAME).ready, true);
+  assert.equal(Alpine.store(STORE_NAME).totalQuantity, 1);
+  assert.equal(Alpine.store(STORE_NAME).error, null);
 });
 
 test('adds lines through updateCart without double-counting its standard event', async () => {

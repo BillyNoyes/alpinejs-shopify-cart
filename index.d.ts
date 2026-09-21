@@ -26,7 +26,7 @@ export interface CartSummary {
   id: string;
   totalQuantity: number;
   cost: CartCost;
-  lines: CartLine[];
+  lines: CartLine[] | { nodes: CartLine[] };
   discountCodes: CartDiscountCode[];
 }
 
