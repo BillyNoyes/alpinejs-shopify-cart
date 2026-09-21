@@ -15,6 +15,7 @@ Keep the package entry point focused on Alpine registration. Shopify transport, 
 - Rebuild and commit `dist/` with source changes; CI checks generated-file consistency.
 - The site imports the real plugin source with a local-only demo transport, so source refactors require site checks too.
 - Do not claim live Shopify validation from mocks. Live store operations require explicit authorization.
+- Keep live-test store domains, theme IDs, variant IDs, cart identifiers, and credentials out of committed files, commit messages, PR text, and public artifacts. Describe tests using generic development-store references.
 
 ## Website
 
