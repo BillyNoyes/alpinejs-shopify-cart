@@ -1,0 +1,68 @@
+{
+  "name": "alpinejs-shopify-cart",
+  "version": "0.1.0",
+  "description": "A reactive Alpine.js cart magic powered by Shopify standard storefront events and actions",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./index.d.ts",
+  "unpkg": "./dist/alpinejs-shopify-cart.min.js",
+  "jsdelivr": "./dist/alpinejs-shopify-cart.min.js",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./cdn": "./dist/alpinejs-shopify-cart.min.js"
+  },
+  "files": [
+    "dist/",
+    "index.d.ts",
+    "LICENSE",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "keywords": [
+    "alpine",
+    "alpinejs",
+    "shopify",
+    "cart",
+    "ecommerce",
+    "shopify-theme"
+  ],
+  "scripts": {
+    "build": "node build.js",
+    "test": "node build.js && node --test tests/*.test.js && tsc -p tsconfig.json && node scripts/test-package.mjs && playwright test",
+    "test:unit": "node --test tests/*.test.js",
+    "test:types": "tsc -p tsconfig.json",
+    "test:package": "node scripts/test-package.mjs",
+    "test:browser": "playwright test",
+    "prepublishOnly": "npm test"
+  },
+  "peerDependencies": {
+    "alpinejs": "^3.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "alpinejs": "^3.17.4",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Billy Noyes",
+  "license": "MIT",
+  "homepage": "https://github.com/BillyNoyes/alpinejs-shopify-cart#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BillyNoyes/alpinejs-shopify-cart.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BillyNoyes/alpinejs-shopify-cart/issues"
+  }
+}
