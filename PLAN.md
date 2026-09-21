@@ -21,7 +21,7 @@ The initial implementation now includes:
 - Unit, package, and Playwright browser tests
 - TypeScript declarations and CI configuration
 
-The next critical validation step is running the implementation on a real Liquid storefront with Shopify's development standard-events runtime and inspector. The package should not be published as stable until that contract test is complete.
+The implementation was validated on a development store through `shopify theme dev --standard-events-inspector`. The live test covered cart initialization, add, update, external action synchronization, note, attributes, discount codes, removal, and `openCart()`, with no invalid standard-event payloads. It also identified and corrected action-readiness timing and the live runtime's `{ nodes }` cart-line connection shape.
 
 ## Product principles
 

@@ -293,8 +293,13 @@ function createCartStore({ getWindow, getDocument }) {
 
     const refresh = () => {
       removeReadyListener();
-      removeReadyListener = () => {};
-      store.refresh().catch(() => {});
+
+      const timer = setTimeout(() => {
+        removeReadyListener = () => {};
+        if (!disposed) store.refresh().catch(() => {});
+      }, 0);
+
+      removeReadyListener = () => clearTimeout(timer);
     };
 
     const target = getDocument();
@@ -303,7 +308,7 @@ function createCartStore({ getWindow, getDocument }) {
       target.addEventListener('DOMContentLoaded', refresh, { once: true });
       removeReadyListener = () => target.removeEventListener('DOMContentLoaded', refresh);
     } else {
-      queueMicrotask(refresh);
+      refresh();
     }
   };
 
@@ -320,7 +325,11 @@ function createCartStore({ getWindow, getDocument }) {
     detail: undefined,
 
     get lines() {
-      return this.cart?.lines ?? [];
+      const lines = this.cart?.lines;
+
+      if (Array.isArray(lines)) return lines;
+
+      return lines?.nodes ?? [];
     },
 
     get totalQuantity() {
