@@ -83,7 +83,6 @@
   .button-primary { background: var(--ink); color: var(--canvas); border-color: var(--ink); }
   .button-primary:hover { opacity: .85; background: var(--ink); }
   .button:active { transform: translateY(1px); }
-  .quiet-link { font-size: .875rem; color: var(--muted); padding: .5rem; text-decoration: underline; }
   .demo { min-width: 0; }
   .demo-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .75rem; font-size: .8125rem; color: var(--muted); }
   .demo-label h2 { font: inherit; color: var(--ink); }

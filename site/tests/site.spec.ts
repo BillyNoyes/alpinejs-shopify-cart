@@ -128,6 +128,16 @@ test('navigation works under the GitHub project prefix and without JavaScript', 
   await context.close();
 });
 
+test('docs navigation retains keyboard focus across responsive changes', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('./docs/');
+  await page.getByRole('searchbox', { name: 'Find a section' }).focus();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('.docs-sidebar summary')).toBeFocused();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(page.locator('#getting-started')).toBeFocused();
+});
+
 test('keyboard access and narrow zoom reflow', async ({ page }) => {
   await page.setViewportSize({ width: 640, height: 450 });
   await page.goto('./');

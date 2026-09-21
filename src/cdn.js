@@ -5,8 +5,8 @@ const REGISTRATION_KEY = '__alpineJsShopifyCartRegistered';
 function register() {
   if (!window.Alpine || window[REGISTRATION_KEY]) return;
 
-  window[REGISTRATION_KEY] = true;
   window.Alpine.plugin(AlpineShopifyCart);
+  window[REGISTRATION_KEY] = true;
 }
 
 if (typeof window !== 'undefined') {

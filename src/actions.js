@@ -21,15 +21,13 @@ export function actionOptions(options, operationId) {
 }
 
 export function createActionsAdapter(getWindow) {
+  const available = (actions) => ['getCart', 'updateCart', 'openCart']
+    .every(name => typeof actions?.[name] === 'function');
+
   const getActions = () => {
     const actions = getWindow()?.Shopify?.actions;
 
-    if (
-      !actions ||
-      typeof actions.getCart !== 'function' ||
-      typeof actions.updateCart !== 'function' ||
-      typeof actions.openCart !== 'function'
-    ) {
+    if (!available(actions)) {
       throw new Error(
         'Shopify standard storefront actions are unavailable. Use this plugin on a Shopify Liquid storefront after DOMContentLoaded.',
       );
@@ -39,6 +37,10 @@ export function createActionsAdapter(getWindow) {
   };
 
   return {
+    isReady() {
+      return available(getWindow()?.Shopify?.actions);
+    },
+
     getCart(payload, options) {
       return getActions().getCart(payload, options);
     },

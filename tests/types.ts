@@ -1,14 +1,26 @@
 import plugin, {
   createPlugin,
+  type AlpineInstance,
+  type ShopifyActions,
   type ShopifyCartStore,
   type UpdateCartResult,
 } from 'alpinejs-shopify-cart';
 
-declare const Alpine: unknown;
+declare const Alpine: AlpineInstance;
+declare const actions: ShopifyActions;
 declare const cart: ShopifyCartStore;
 
 plugin(Alpine);
 createPlugin()(Alpine);
+createPlugin({
+  getWindow: () => ({ Shopify: { actions } }),
+  getDocument: () => new EventTarget(),
+})(Alpine);
+
+// @ts-expect-error Alpine registration requires store and magic methods.
+plugin({});
+// @ts-expect-error Cart actions must return the standard result, not a primitive.
+createPlugin({ getWindow: () => ({ Shopify: { actions: { getCart: async () => 1 } } }) });
 
 const result: Promise<UpdateCartResult> = cart.add(
   {

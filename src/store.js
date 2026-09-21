@@ -46,9 +46,14 @@ export function createCartStore({ getWindow, getDocument }) {
 
     const target = getDocument();
 
-    if (target?.readyState === 'loading') {
+    if (target?.readyState === 'loading' || (target?.readyState === 'interactive' && !adapter.isReady())) {
+      const complete = () => { if (target.readyState === 'complete') refresh(); };
       target.addEventListener('DOMContentLoaded', refresh, { once: true });
-      removeReadyListener = () => target.removeEventListener('DOMContentLoaded', refresh);
+      target.addEventListener('readystatechange', complete);
+      removeReadyListener = () => {
+        target.removeEventListener('DOMContentLoaded', refresh);
+        target.removeEventListener('readystatechange', complete);
+      };
     } else {
       refresh();
     }
@@ -103,7 +108,7 @@ export function createCartStore({ getWindow, getDocument }) {
           const result = await adapter.getCart(payload, requestOptions);
           return operations.applyResult(result, operation.revision);
         } finally {
-          this.ready = true;
+          if (!operations.disposed) this.ready = true;
         }
       });
     },

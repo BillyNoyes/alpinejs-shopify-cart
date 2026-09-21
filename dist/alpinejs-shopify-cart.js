@@ -35,9 +35,10 @@
     return compactObject({ signal: options.signal, event });
   }
   function createActionsAdapter(getWindow) {
+    const available = (actions) => ["getCart", "updateCart", "openCart"].every((name) => typeof actions?.[name] === "function");
     const getActions = () => {
       const actions = getWindow()?.Shopify?.actions;
-      if (!actions || typeof actions.getCart !== "function" || typeof actions.updateCart !== "function" || typeof actions.openCart !== "function") {
+      if (!available(actions)) {
         throw new Error(
           "Shopify standard storefront actions are unavailable. Use this plugin on a Shopify Liquid storefront after DOMContentLoaded."
         );
@@ -45,6 +46,9 @@
       return actions;
     };
     return {
+      isReady() {
+        return available(getWindow()?.Shopify?.actions);
+      },
       getCart(payload, options) {
         return getActions().getCart(payload, options);
       },
@@ -66,6 +70,7 @@
   }
   function createCartEvents(getDocument, getStore, operations) {
     const listeners = /* @__PURE__ */ new Map();
+    let target;
     const updateLocalEventState = (event, result) => {
       if ((result.userErrors?.length ?? 0) > 0) return;
       const store = getStore();
@@ -74,8 +79,12 @@
     };
     const handleMutationEvent = (event) => {
       const operationId = event.detail?.[OPERATION_DETAIL_KEY];
-      if (operationId && operations.get(operationId)) return;
       if (!event.promise || typeof event.promise.then !== "function") return;
+      if (operations.owns(operationId)) {
+        Promise.resolve(event.promise).catch(() => {
+        });
+        return;
+      }
       const operation = operations.begin(eventOperationType(event));
       operation.revision = operations.nextRevision();
       operations.clearMessages();
@@ -86,6 +95,7 @@
     const handleErrorEvent = (event) => {
       const operationId = event.detail?.[OPERATION_DETAIL_KEY];
       const operation = operationId ? operations.get(operationId) : void 0;
+      if (operations.owns(operationId) && !operation) return;
       const eventRevision = operation?.revision ?? operations.nextRevision();
       operations.applyError(
         {
@@ -104,8 +114,10 @@
     };
     return {
       attach() {
-        const target = getDocument();
-        if (!target?.addEventListener) return;
+        if (target) return;
+        const document2 = getDocument();
+        if (!document2?.addEventListener) return;
+        target = document2;
         MUTATION_EVENTS.forEach((eventName) => {
           target.addEventListener(eventName, handleMutationEvent);
           listeners.set(eventName, handleMutationEvent);
@@ -116,42 +128,36 @@
         listeners.set("shopify:cart:view", handleViewEvent);
       },
       detach() {
-        const target = getDocument();
         listeners.forEach((listener, eventName) => {
           target?.removeEventListener?.(eventName, listener);
         });
         listeners.clear();
+        target = void 0;
       }
     };
   }
 
   // src/operations.js
   function normalizeError(error, operationId) {
-    if (error && typeof error === "object") {
-      return {
-        name: error.name ?? "Error",
-        message: error.message ?? String(error),
-        code: error.code,
-        detail: error.detail,
-        operationId,
-        cause: error
-      };
-    }
+    const source = error && typeof error === "object" ? error : {};
     return {
-      name: "Error",
-      message: String(error),
-      code: void 0,
-      detail: void 0,
+      name: source.name ?? "Error",
+      message: source.message ?? String(error),
+      code: source.code,
+      detail: source.detail,
       operationId,
       cause: error
     };
   }
   function createCartOperations(getStore) {
     const operations = /* @__PURE__ */ new Map();
+    const instanceId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const operationPrefix = `cart-operation-${instanceId}-`;
     let disposed = false;
     let operationNumber = 0;
     let revision = 0;
     let appliedRevision = 0;
+    let messageRevision = 0;
     let queue = Promise.resolve();
     const nextRevision = () => ++revision;
     const syncPendingState = () => {
@@ -161,7 +167,7 @@
       store.pendingCount = pending.length;
       store.pendingOperation = pending.at(-1)?.type ?? null;
     };
-    const begin = (type, id = `cart-operation-${++operationNumber}`) => {
+    const begin = (type, id = `${operationPrefix}${++operationNumber}`) => {
       const operation = { id, type, revision: void 0 };
       operations.set(id, operation);
       syncPendingState();
@@ -172,6 +178,7 @@
       syncPendingState();
     };
     const clearMessages = () => {
+      messageRevision = revision;
       const store = getStore();
       store.error = null;
       store.userErrors = [];
@@ -182,19 +189,26 @@
       const store = getStore();
       appliedRevision = resultRevision;
       if (Object.prototype.hasOwnProperty.call(result, "cart")) {
+        if (store.cart?.id !== result.cart?.id) {
+          store.note = void 0;
+          store.attributes = void 0;
+        }
         store.cart = result.cart;
       }
-      store.userErrors = result.userErrors ?? [];
-      store.warnings = result.warnings ?? [];
-      store.detail = result.detail;
-      store.error = null;
-      if (store.userErrors.length === 0) onSuccess?.(result);
+      if (resultRevision >= messageRevision) {
+        messageRevision = resultRevision;
+        store.userErrors = result.userErrors ?? [];
+        store.warnings = result.warnings ?? [];
+        store.detail = result.detail;
+        store.error = null;
+      }
+      if (!result.userErrors?.length) onSuccess?.(result);
       return result;
     };
     const applyError = (error, resultRevision, operationId) => {
-      if (disposed || resultRevision < appliedRevision) return;
+      if (disposed || resultRevision < messageRevision) return;
       const store = getStore();
-      appliedRevision = resultRevision;
+      messageRevision = resultRevision;
       if (operationId && store.error?.operationId === operationId) return;
       store.error = normalizeError(error, operationId);
     };
@@ -204,6 +218,7 @@
       }
       const operation = begin(type);
       const task = queue.then(async () => {
+        if (disposed) throw new Error("The Alpine Shopify cart store has been disposed.");
         operation.revision = nextRevision();
         clearMessages();
         try {
@@ -226,6 +241,7 @@
       applyError,
       enqueue,
       get: (id) => operations.get(id),
+      owns: (id) => typeof id === "string" && id.startsWith(operationPrefix),
       get disposed() {
         return disposed;
       },
@@ -272,9 +288,16 @@
         removeReadyListener = () => clearTimeout(timer);
       };
       const target = getDocument();
-      if (target?.readyState === "loading") {
+      if (target?.readyState === "loading" || target?.readyState === "interactive" && !adapter.isReady()) {
+        const complete = () => {
+          if (target.readyState === "complete") refresh();
+        };
         target.addEventListener("DOMContentLoaded", refresh, { once: true });
-        removeReadyListener = () => target.removeEventListener("DOMContentLoaded", refresh);
+        target.addEventListener("readystatechange", complete);
+        removeReadyListener = () => {
+          target.removeEventListener("DOMContentLoaded", refresh);
+          target.removeEventListener("readystatechange", complete);
+        };
       } else {
         refresh();
       }
@@ -318,7 +341,7 @@
             const result = await adapter.getCart(payload, requestOptions);
             return operations.applyResult(result, operation.revision);
           } finally {
-            this.ready = true;
+            if (!operations.disposed) this.ready = true;
           }
         });
       },
@@ -379,9 +402,9 @@
       if (Alpine.store(STORE_NAME) !== void 0) {
         throw new Error(`Alpine store "${STORE_NAME}" is already registered.`);
       }
-      registeredAlpines.add(Alpine);
       Alpine.store(STORE_NAME, createCartStore({ getWindow, getDocument }));
       Alpine.magic("cart", () => Alpine.store(STORE_NAME));
+      registeredAlpines.add(Alpine);
     };
   }
   var AlpineShopifyCart = createPlugin();
@@ -391,8 +414,8 @@
   var REGISTRATION_KEY = "__alpineJsShopifyCartRegistered";
   function register() {
     if (!window.Alpine || window[REGISTRATION_KEY]) return;
-    window[REGISTRATION_KEY] = true;
     window.Alpine.plugin(index_default);
+    window[REGISTRATION_KEY] = true;
   }
   if (typeof window !== "undefined") {
     window.AlpineShopifyCart = index_default;

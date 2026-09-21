@@ -10,6 +10,7 @@ function eventOperationType(event) {
 
 export function createCartEvents(getDocument, getStore, operations) {
   const listeners = new Map();
+  let target;
 
   const updateLocalEventState = (event, result) => {
     if ((result.userErrors?.length ?? 0) > 0) return;
@@ -22,8 +23,12 @@ export function createCartEvents(getDocument, getStore, operations) {
   const handleMutationEvent = (event) => {
     const operationId = event.detail?.[OPERATION_DETAIL_KEY];
 
-    if (operationId && operations.get(operationId)) return;
     if (!event.promise || typeof event.promise.then !== 'function') return;
+    if (operations.owns(operationId)) {
+      // The action result owns reconciliation, but the event may carry a distinct rejecting promise.
+      Promise.resolve(event.promise).catch(() => {});
+      return;
+    }
 
     const operation = operations.begin(eventOperationType(event));
     operation.revision = operations.nextRevision();
@@ -40,6 +45,7 @@ export function createCartEvents(getDocument, getStore, operations) {
   const handleErrorEvent = (event) => {
     const operationId = event.detail?.[OPERATION_DETAIL_KEY];
     const operation = operationId ? operations.get(operationId) : undefined;
+    if (operations.owns(operationId) && !operation) return;
     const eventRevision = operation?.revision ?? operations.nextRevision();
 
     operations.applyError(
@@ -62,8 +68,10 @@ export function createCartEvents(getDocument, getStore, operations) {
 
   return {
     attach() {
-      const target = getDocument();
-      if (!target?.addEventListener) return;
+      if (target) return;
+      const document = getDocument();
+      if (!document?.addEventListener) return;
+      target = document;
 
       MUTATION_EVENTS.forEach((eventName) => {
         target.addEventListener(eventName, handleMutationEvent);
@@ -78,13 +86,12 @@ export function createCartEvents(getDocument, getStore, operations) {
     },
 
     detach() {
-      const target = getDocument();
-
       listeners.forEach((listener, eventName) => {
         target?.removeEventListener?.(eventName, listener);
       });
 
       listeners.clear();
+      target = undefined;
     },
   };
 }

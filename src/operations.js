@@ -1,20 +1,11 @@
 function normalizeError(error, operationId) {
-  if (error && typeof error === 'object') {
-    return {
-      name: error.name ?? 'Error',
-      message: error.message ?? String(error),
-      code: error.code,
-      detail: error.detail,
-      operationId,
-      cause: error,
-    };
-  }
+  const source = error && typeof error === 'object' ? error : {};
 
   return {
-    name: 'Error',
-    message: String(error),
-    code: undefined,
-    detail: undefined,
+    name: source.name ?? 'Error',
+    message: source.message ?? String(error),
+    code: source.code,
+    detail: source.detail,
     operationId,
     cause: error,
   };
@@ -22,10 +13,13 @@ function normalizeError(error, operationId) {
 
 export function createCartOperations(getStore) {
   const operations = new Map();
+  const instanceId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const operationPrefix = `cart-operation-${instanceId}-`;
   let disposed = false;
   let operationNumber = 0;
   let revision = 0;
   let appliedRevision = 0;
+  let messageRevision = 0;
   let queue = Promise.resolve();
 
   const nextRevision = () => ++revision;
@@ -39,7 +33,7 @@ export function createCartOperations(getStore) {
     store.pendingOperation = pending.at(-1)?.type ?? null;
   };
 
-  const begin = (type, id = `cart-operation-${++operationNumber}`) => {
+  const begin = (type, id = `${operationPrefix}${++operationNumber}`) => {
     const operation = { id, type, revision: undefined };
     operations.set(id, operation);
     syncPendingState();
@@ -52,6 +46,7 @@ export function createCartOperations(getStore) {
   };
 
   const clearMessages = () => {
+    messageRevision = revision;
     const store = getStore();
     store.error = null;
     store.userErrors = [];
@@ -65,24 +60,32 @@ export function createCartOperations(getStore) {
     appliedRevision = resultRevision;
 
     if (Object.prototype.hasOwnProperty.call(result, 'cart')) {
+      if (store.cart?.id !== result.cart?.id) {
+        store.note = undefined;
+        store.attributes = undefined;
+      }
       store.cart = result.cart;
     }
 
-    store.userErrors = result.userErrors ?? [];
-    store.warnings = result.warnings ?? [];
-    store.detail = result.detail;
-    store.error = null;
+    if (resultRevision >= messageRevision) {
+      messageRevision = resultRevision;
+      store.userErrors = result.userErrors ?? [];
+      store.warnings = result.warnings ?? [];
+      store.detail = result.detail;
+      store.error = null;
+    }
 
-    if (store.userErrors.length === 0) onSuccess?.(result);
+    if (!result.userErrors?.length) onSuccess?.(result);
 
     return result;
   };
 
   const applyError = (error, resultRevision, operationId) => {
-    if (disposed || resultRevision < appliedRevision) return;
+    if (disposed || resultRevision < messageRevision) return;
 
     const store = getStore();
-    appliedRevision = resultRevision;
+    // A failed operation can update diagnostics without invalidating an earlier successful cart response.
+    messageRevision = resultRevision;
 
     if (operationId && store.error?.operationId === operationId) return;
 
@@ -96,6 +99,8 @@ export function createCartOperations(getStore) {
 
     const operation = begin(type);
     const task = queue.then(async () => {
+      if (disposed) throw new Error('The Alpine Shopify cart store has been disposed.');
+
       operation.revision = nextRevision();
       clearMessages();
 
@@ -121,6 +126,7 @@ export function createCartOperations(getStore) {
     applyError,
     enqueue,
     get: (id) => operations.get(id),
+    owns: (id) => typeof id === 'string' && id.startsWith(operationPrefix),
     get disposed() { return disposed; },
     dispose() {
       disposed = true;

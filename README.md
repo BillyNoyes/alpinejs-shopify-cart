@@ -2,179 +2,140 @@
 
 A headless, reactive `$cart` magic for Alpine.js, powered by Shopify's standard storefront events and actions.
 
-> **Status:** Active early development. The first working plugin implementation is available in the repository, but no npm package has been published yet and the API may change before the first release.
+[Documentation](https://billynoyes.github.io/alpinejs-shopify-cart/docs/) · [Local demo](https://billynoyes.github.io/alpinejs-shopify-cart/)
 
-## Why
+**Status:** Working development implementation. Not published on npm; build from source to try it. The public API may change before the first release.
 
-Shopify Liquid storefronts now have a standard communication layer for cart behavior:
+## What it does
 
-- `Shopify.actions.getCart()` reads the current cart.
-- `Shopify.actions.updateCart()` changes cart lines, notes, attributes, and discount codes.
-- `Shopify.actions.openCart()` lets the storefront decide whether to open a drawer or navigate to the cart page.
-- Standard `shopify:cart:*` DOM events notify the page when cart state changes.
+- Reads the cart with `Shopify.actions.getCart()`.
+- Adds, updates, and removes lines through `Shopify.actions.updateCart()`.
+- Updates cart notes, attributes, and discount codes.
+- Opens the theme's cart through `Shopify.actions.openCart()`.
+- Observes standard `shopify:cart:*` events from other theme or app code.
+- Shares reactive state across Alpine components, with queued local operations and separate errors, user errors, and warnings.
 
-That removes the need for Alpine components to intercept `fetch`, scrape theme markup, or implement a separate integration for every theme.
+The plugin does not provide markup, CSS, a cart drawer, analytics, or an Ajax Cart API fallback. It targets Shopify Liquid storefronts, not Admin apps, checkout extensions, POS, or headless storefronts. No API token is needed.
 
-`alpinejs-shopify-cart` will turn those standards into a small reactive Alpine API:
+## Build from source
 
-```html
-<span x-text="$cart.totalQuantity"></span>
-
-<button
-    @click="$cart.add({ merchandiseId: variantId, quantity: 1 })"
-    :disabled="$cart.pending"
->
-    Add to cart
-</button>
+```sh
+git clone https://github.com/BillyNoyes/alpinejs-shopify-cart.git
+cd alpinejs-shopify-cart
+npm ci
+npm run build
 ```
 
-The plugin will not own cart markup, CSS, analytics, or drawer behavior. It will expose Shopify's cart state and actions in a form that feels native to Alpine.
+### Theme assets
 
-## Proposed usage
+Copy `dist/alpinejs-shopify-cart.min.js` into your theme's `assets/` directory. Copy Alpine's CDN build there as `alpine.js`. Load the plugin before Alpine, and load Alpine only once:
+
+```liquid
+<script defer src="{{ 'alpinejs-shopify-cart.min.js' | asset_url }}"></script>
+<script defer src="{{ 'alpine.js' | asset_url }}"></script>
+```
+
+### JavaScript bundle
+
+Import the built ES module using the appropriate local path:
 
 ```js
 import Alpine from 'alpinejs'
-import shopifyCart from 'alpinejs-shopify-cart'
+import shopifyCart from './vendor/alpinejs-shopify-cart/dist/index.js'
 
 Alpine.plugin(shopifyCart)
 Alpine.start()
 ```
 
-A CDN build is also planned:
+The package also builds a CommonJS entry and includes TypeScript declarations. Module imports do not auto-register; the CDN entry does.
 
-```html
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs-shopify-cart@VERSION/dist/cdn.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@VERSION/dist/cdn.min.js"></script>
-```
+## Reactive state
 
-## Proposed API
-
-### State
-
-```js
-$cart.ready
-$cart.cart
-$cart.lines
-$cart.totalQuantity
-$cart.cost
-$cart.discountCodes
-$cart.note
-$cart.attributes
-$cart.pending
-$cart.pendingCount
-$cart.pendingOperation
-$cart.error
-$cart.userErrors
-$cart.warnings
-```
-
-`$cart.cart` retains Shopify's standard cart summary shape. Convenience getters such as `lines`, `totalQuantity`, and `cost` do not replace or reshape the underlying response. The standard summary intentionally omits product titles, images, and full merchandise objects; themes should render those through Liquid or another product-data source.
-
-### Read and display the cart
+All `$cart` references resolve to `Alpine.store('shopifyCart')`.
 
 ```html
 <div x-data>
-    <p x-show="! $cart.ready">Loading cart…</p>
-
-    <template x-for="line in $cart.lines" :key="line.id">
-        <article>
-            <span x-text="line.quantity"></span>
-            <span x-text="line.cost.totalAmount.amount"></span>
-        </article>
-    </template>
-
-    <p>
-        <span x-text="$cart.totalQuantity"></span>
-        items
-    </p>
+    <span x-text="$cart.totalQuantity"></span>
+    <span x-show="$cart.pending">Updating cart…</span>
 </div>
 ```
 
-### Refresh
+| Property | Meaning |
+| --- | --- |
+| `ready` | An initial read attempt completed, including failure. Check `error` separately. |
+| `cart` | Raw Shopify cart result, or `null`. |
+| `lines` | Line array, normalized from an array or a `{ nodes }` connection. |
+| `totalQuantity` | Quantity across all lines, or zero. |
+| `cost` | Cart cost, or `null`. Amounts are decimal strings, not integer cents. |
+| `discountCodes` | Codes and their applicability, as returned by Shopify. |
+| `note`, `attributes` | Last successfully observed values; undefined until known. Cleared when cart identity changes. |
+| `pending`, `pendingCount` | Whether operations remain, and how many are tracked, including queued calls. |
+| `pendingOperation` | Most recently registered pending operation, or `null`. |
+| `error` | Rejected operation details, or `null`. |
+| `userErrors`, `warnings` | Resolved validation errors and non-blocking warnings. |
+| `detail` | Custom detail from the applied result. |
 
-```html
-<button @click="$cart.refresh()" :disabled="$cart.pending">
-    Refresh cart
-</button>
-```
+The standard cart summary omits product titles, images, and full merchandise objects. Render those through Liquid or a separate product-data source.
 
-`refresh()` will call `Shopify.actions.getCart()` and reconcile the reactive store with the returned cart.
+## Methods
 
-### Add a product variant
-
-```html
-<button
-    @click="$cart.add({ merchandiseId: variantId, quantity: 1 }, { context: 'product' })"
-    :disabled="$cart.pending"
->
-    Add to cart
-</button>
-```
-
-### Change or remove a line
-
-```html
-<template x-for="line in $cart.lines" :key="line.id">
-    <div>
-        <button @click="$cart.update({ id: line.id, quantity: line.quantity - 1 })">
-            Decrease
-        </button>
-
-        <span x-text="line.quantity"></span>
-
-        <button @click="$cart.update({ id: line.id, quantity: line.quantity + 1 })">
-            Increase
-        </button>
-
-        <button @click="$cart.remove(line.id)">
-            Remove
-        </button>
-    </div>
-</template>
-```
-
-### Update other cart data
+Mutation methods resolve with the complete Shopify result, including `cart`, `userErrors`, and `warnings`. A failed request rejects its promise; callers must catch it.
 
 ```js
-await $cart.setNote('Leave at the front desk')
-await $cart.setAttributes([{ key: 'Gift wrap', value: 'Yes' }])
-await $cart.setDiscountCodes(['WELCOME10'])
+await cart.add({ merchandiseId: variantId, quantity: 1 })
+await cart.update({ id: line.id, quantity: 2 })
+await cart.remove(line.id)
+await cart.setNote('Leave at the front desk')
+await cart.setAttributes([{ key: 'Gift wrap', value: 'Yes' }])
+await cart.setDiscountCodes(['WELCOME10'])
+await cart.refresh()
+await cart.open()
 ```
 
-These methods delegate to `Shopify.actions.updateCart()` rather than maintaining a second cart implementation. `setAttributes()` and `setDiscountCodes()` send complete replacement sets, matching Shopify's standard action contract. Advanced consumers can pass a complete standard payload through `$cart.mutate(payload, options)`.
+Here `cart` is obtained from `Alpine.store('shopifyCart')`, or as `this.$cart` in an Alpine component.
 
-### Open the cart
+- `add()` and `update()` accept one line or an array. `remove()` accepts one line ID or an array.
+- Use `merchandiseId` to add a variant; use a returned cart line `id` to update or remove it.
+- Attributes and discount codes are complete replacement sets. An empty array clears the set.
+- `mutate(payload, options)` accepts a complete standard `updateCart` payload.
+- `refresh({ cartId?, signal? })` returns `{ cart }`.
+- `open()` takes no arguments and returns `Promise<void>`.
 
-```html
-<button @click="$cart.open()">
-    View cart
-</button>
+Mutation options accept `signal`, `context`, `detail`, and standard nested `event` options. Top-level context and detail take precedence over nested values. The plugin reserves `event.detail.alpineShopifyCartOperationId` for correlation.
+
+```js
+await cart.mutate({
+    lines: [{ id: line.id, quantity: 2 }],
+    note: 'Gift order',
+}, {
+    context: 'cart',
+    detail: { source: 'cart-page' },
+})
 ```
 
-`open()` will call `Shopify.actions.openCart()`. The theme remains responsible for deciding whether that opens a drawer or navigates to the cart page.
+Quantities are absolute targets. When deriving a new quantity from current state, disable controls while pending to avoid repeatedly submitting the same target.
 
-## Standard events and actions
+## Errors and warnings
 
-The plugin will use Shopify's standard interface as its source of truth.
+```js
+try {
+    const result = await cart.add({ merchandiseId: variantId, quantity: 1 })
+    if (result.userErrors?.length) {
+        showMessage(result.userErrors[0].message)
+        return
+    }
+    if (result.warnings?.length) showMessage(result.warnings[0].message)
+    await cart.open()
+} catch (error) {
+    showMessage(error.message ?? 'Could not update the cart. Try again.')
+}
+```
 
-### Actions
+`showMessage` represents your theme's UI. A resolved `userErrors` array means Shopify declined a change; a warning means it applied with an adjustment. Neither should be treated as a network failure.
 
-| Plugin method | Shopify action |
-| --- | --- |
-| `$cart.refresh()` | `Shopify.actions.getCart()` |
-| `$cart.add()` | `Shopify.actions.updateCart()` |
-| `$cart.update()` | `Shopify.actions.updateCart()` |
-| `$cart.remove()` | `Shopify.actions.updateCart()` |
-| `$cart.setNote()` | `Shopify.actions.updateCart()` |
-| `$cart.setAttributes()` | `Shopify.actions.updateCart()` |
-| `$cart.setDiscountCodes()` | `Shopify.actions.updateCart()` |
-| `$cart.open()` | `Shopify.actions.openCart()` |
+## Events and theme behavior
 
-The plugin will respect action handlers configured by the active theme. It will not replace a theme's `updateCart` or `openCart` configuration by default.
-
-### Events
-
-The reactive store will listen for:
+The plugin listens on `document` for:
 
 ```text
 shopify:cart:lines-update
@@ -185,87 +146,54 @@ shopify:cart:error
 shopify:cart:view
 ```
 
-When an event carries a result promise, the plugin will reconcile state from the resolved cart. This means cart changes initiated by other apps or theme code can update Alpine consumers without DOM scraping or request interception.
+Mutation events carry a result promise. Their properties are directly on the event, not all inside `event.detail`. The plugin waits for the result and reconciles the cart. Events belonging to its own actions are consumed without duplicate reconciliation.
 
-`Shopify.actions.updateCart()` already emits its corresponding standard cart events. The plugin will not dispatch duplicate events after calling the action.
+`Shopify.actions.updateCart()` already emits standard events. Do not emit another event after calling `$cart`. Changes outside standard actions are observable only when the theme or app dispatches standard events; the plugin does not intercept `fetch` or poll.
 
-Standard storefront events are for coordinating storefront behavior, not analytics. Analytics integrations should use Shopify Web Pixels so buyer consent is respected.
+**Shopify's default action can reload the page.** For in-place updates, your theme must configure the appropriate `updateCart` handler and event target. `openCart` may open a drawer or navigate to the cart page. The plugin respects those decisions and does not configure actions itself.
 
-## Design principles
+Standard events are not a consent-aware analytics channel. Use Shopify Web Pixels for analytics.
 
-### Headless
+## Initialization and cleanup
 
-The plugin will provide state and operations, not a cart drawer component or stylesheet. Themes remain free to render carts however they choose.
+Register before `Alpine.start()`. The plugin attaches listeners immediately and defers its initial read while the document and Shopify action runtime initialize. An unavailable runtime is recorded in `error`; `refresh()` can retry later.
 
-### Standards-first
+The store and listeners belong to the page. Do not dispose when just one widget is removed. At application teardown:
 
-The first release will target Shopify Liquid storefronts with standard storefront actions. It will not wrap the legacy Ajax Cart API or require a Storefront API token.
-
-### Server-authoritative
-
-The cart returned by Shopify is canonical. User errors, warnings, inventory adjustments, discounts, and cart transformations must be preserved rather than hidden behind optimistic local state.
-
-### Race-safe
-
-Cart mutations will be coordinated so rapid quantity changes cannot apply stale responses out of order. Pending state will be derived from active operations rather than a fragile single boolean.
-
-### Interoperable
-
-Changes initiated through the plugin, theme code, or another app should converge on the same reactive cart state through Shopify's standard events and action results.
-
-### Small
-
-The plugin should remain focused enough for storefront use, with no UI framework, API client, or generalized state-management dependency.
-
-## Scope
-
-The initial package targets:
-
-- Shopify Liquid storefronts with standard storefront actions
-- Alpine.js 3
-- Modern evergreen browsers
-- ES module, CommonJS, and CDN usage
-
-Standard actions become available after `DOMContentLoaded`. The plugin registers its event listeners during Alpine setup, waits for that lifecycle point, and then initializes state through `Shopify.actions.getCart()`.
-
-It does not target:
-
-- Hydrogen storefronts
-- Shopify Admin apps
-- Checkout UI extensions
-- POS UI extensions
-- Cart analytics
-- Cart drawer markup or styling
-- Product option and variant-selection logic
-
-## Documentation
-
-- [Shopify standard storefront events and actions](https://shopify.dev/docs/storefronts/themes/best-practices/standard-events-and-actions)
-- [Calling standard actions](https://shopify.dev/docs/api/storefront-events-and-actions/actions/call)
-- [`updateCart`](https://shopify.dev/docs/api/storefront-events-and-actions/actions/update-cart)
-- [`getCart`](https://shopify.dev/docs/api/storefront-events-and-actions/actions/get-cart)
-- [`openCart`](https://shopify.dev/docs/api/storefront-events-and-actions/actions/open-cart)
-- [Standard storefront events](https://shopify.dev/docs/api/storefront-events-and-actions/events)
-
-## Website
-
-The landing page and documentation live in [`site/`](./site/). They use Alpine.js, Tailwind CSS, Vite, and self-hosted Inter fonts.
-
-```sh
-npm --prefix site ci
-npm --prefix site run dev
+```js
+Alpine.store('shopifyCart').dispose()
 ```
 
-See [site/README.md](./site/README.md) for browser tests and GitHub Pages deployment. The site workflow validates pull requests and deploys changes from `main`.
+Disposal removes listeners, cancels initialization, rejects new calls, skips queued calls that have not started, and prevents late results from writing reactive state. It does not abort a request already sent or undo a server-side mutation. There is no restart API.
 
-## Development plan
+Local requests are serialized, and stale responses do not replace newer successful cart snapshots. A newer failed operation does not discard an earlier successful cart result. This is not distributed concurrency control: unrelated writers and events without a server revision still require integration testing.
 
-See [PLAN.md](./PLAN.md) for the proposed architecture, milestones, testing strategy, and release criteria. The exact platform assumptions used by the implementation are recorded in [Shopify standard cart contract](./docs/SHOPIFY_STANDARD_CONTRACT.md).
+## Development and validation
 
-## Contributing
+Requires Node.js 20 or newer for the package; Node.js 24 for the site.
 
-The project is currently defining its first public API. Issues and discussions about real Shopify theme use cases are welcome, especially around concurrency, standard event interoperability, errors, and theme-configured actions.
+```sh
+npm ci
+npx playwright install chromium firefox webkit
+npm test
+
+npm --prefix site ci
+npm --prefix site run check
+```
+
+Tests cover lifecycle and race regressions, packed ESM/CommonJS consumers, CDN tree-shaking, public types, and browser integration with standard and CSP Alpine builds. The browser runtime is a controlled test double, not a live Shopify store. Live-store validation requires separate authorization and a real development theme.
+
+The source is split into registration (`index.js`), Shopify transport (`actions.js`), event observation (`events.js`), operation ordering and reconciliation (`operations.js`), and reactive state/methods (`store.js`).
+
+See [the site guide](https://github.com/BillyNoyes/alpinejs-shopify-cart/blob/main/site/README.md), [the development plan](https://github.com/BillyNoyes/alpinejs-shopify-cart/blob/main/PLAN.md), and [the Shopify contract](https://github.com/BillyNoyes/alpinejs-shopify-cart/blob/main/docs/SHOPIFY_STANDARD_CONTRACT.md).
+
+## References
+
+- [Shopify standard events and actions](https://shopify.dev/docs/storefronts/themes/best-practices/standard-events-and-actions)
+- [Calling actions](https://shopify.dev/docs/api/storefront-events-and-actions/actions/call)
+- [Configuring actions](https://shopify.dev/docs/api/storefront-events-and-actions/actions/configure)
+- [Alpine plugin authoring](https://alpinejs.dev/advanced/extending)
 
 ## License
 
-MIT
+MIT. Independent project by Billy Noyes, with no Shopify sponsorship or endorsement.

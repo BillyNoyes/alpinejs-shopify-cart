@@ -22,7 +22,10 @@
     "LICENSE",
     "README.md"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/alpinejs-shopify-cart.js",
+    "./dist/alpinejs-shopify-cart.min.js"
+  ],
   "keywords": [
     "alpine",
     "alpinejs",
@@ -44,6 +47,7 @@
     "alpinejs": "^3.0.0"
   },
   "devDependencies": {
+    "@alpinejs/csp": "^3.17.4",
     "@playwright/test": "^1.55.0",
     "alpinejs": "^3.17.4",
     "esbuild": "^0.25.0",

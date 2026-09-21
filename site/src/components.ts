@@ -7,6 +7,7 @@ export function copyCode(root: HTMLElement) {
     async copy() {
       if (this.pending || destroyed) return;
       clearTimeout(timer);
+      this.status = '';
       this.pending = true;
       try {
         const code = root.querySelector('pre code')?.textContent;
@@ -27,6 +28,7 @@ export function copyCode(root: HTMLElement) {
 
 export function docsNavigation(root: HTMLElement) {
   let cleanup = () => {};
+  let frame: number | undefined;
   return {
     query: '',
     active: 'getting-started',
@@ -34,7 +36,19 @@ export function docsNavigation(root: HTMLElement) {
       const sections = [...root.querySelectorAll<HTMLElement>('article section[id]')];
       const menu = root.querySelector<HTMLDetailsElement>('.docs-sidebar details');
       const desktop = matchMedia('(min-width: 1024px)');
-      const syncMenu = () => { if (menu) menu.open = desktop.matches; };
+      let lastFocused = document.activeElement;
+      const trackFocus = () => { lastFocused = document.activeElement; };
+      root.addEventListener('focusin', trackFocus);
+      const syncMenu = () => {
+        if (!menu) return;
+        // A breakpoint can hide the focused control before matchMedia dispatches its change event.
+        const focused = document.activeElement === document.body ? lastFocused : document.activeElement;
+        if (!desktop.matches && menu.contains(focused)) menu.querySelector('summary')?.focus();
+        if (desktop.matches && focused === menu.querySelector('summary')) {
+          sections.find(section => section.id === this.active)?.focus({ preventScroll: true });
+        }
+        menu.open = desktop.matches;
+      };
       const syncHash = () => {
         const section = sections.find(item => `#${item.id}` === location.hash);
         if (section) this.active = section.id;
@@ -49,6 +63,8 @@ export function docsNavigation(root: HTMLElement) {
       window.addEventListener('hashchange', syncHash);
       cleanup = () => {
         observer.disconnect();
+        if (frame !== undefined) cancelAnimationFrame(frame);
+        root.removeEventListener('focusin', trackFocus);
         desktop.removeEventListener('change', syncMenu);
         window.removeEventListener('hashchange', syncHash);
       };
@@ -65,7 +81,9 @@ export function docsNavigation(root: HTMLElement) {
       this.active = target.id;
       const menu = root.querySelector<HTMLDetailsElement>('.docs-sidebar details');
       if (menu && !matchMedia('(min-width: 1024px)').matches) menu.open = false;
-      requestAnimationFrame(() => {
+      if (frame !== undefined) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        frame = undefined;
         target.focus({ preventScroll: true });
         target.scrollIntoView({ block: 'start' });
       });

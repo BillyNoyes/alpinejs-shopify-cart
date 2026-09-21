@@ -9,6 +9,7 @@ function defaultGetDocument() {
   return typeof document === 'undefined' ? undefined : document;
 }
 
+/** @param {import('../index').PluginEnvironment} [environment] */
 export function createPlugin({
   getWindow = defaultGetWindow,
   getDocument = defaultGetDocument,
@@ -22,9 +23,9 @@ export function createPlugin({
       throw new Error(`Alpine store "${STORE_NAME}" is already registered.`);
     }
 
-    registeredAlpines.add(Alpine);
     Alpine.store(STORE_NAME, createCartStore({ getWindow, getDocument }));
     Alpine.magic('cart', () => Alpine.store(STORE_NAME));
+    registeredAlpines.add(Alpine);
   };
 }
 

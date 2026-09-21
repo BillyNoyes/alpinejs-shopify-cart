@@ -1,4 +1,10 @@
-export type AlpinePlugin = (Alpine: any) => void;
+export interface AlpineInstance {
+  store(name: string): unknown;
+  store(name: string, value: unknown): void;
+  magic(name: string, callback: () => unknown): void;
+}
+
+export type AlpinePlugin = (Alpine: AlpineInstance) => void;
 export type CartIdentifier = string | number;
 export type CartContext = 'product' | 'cart' | 'dialog' | 'standard-action';
 
@@ -98,7 +104,7 @@ export interface CartRefreshOptions {
 export interface ShopifyCartErrorState {
   name: string;
   message: string;
-  code?: string;
+  code?: string | number;
   detail?: Record<string, unknown>;
   operationId?: string;
   cause?: unknown;
@@ -133,9 +139,15 @@ export interface ShopifyCartStore {
   dispose(): void;
 }
 
+export interface ShopifyActions {
+  getCart(payload?: { cartId?: string }, options?: { signal?: AbortSignal }): Promise<GetCartResult>;
+  updateCart(payload: UpdateCartPayload, options?: { signal?: AbortSignal; event?: StandardEventOptions }): Promise<UpdateCartResult>;
+  openCart(): Promise<void>;
+}
+
 export interface PluginEnvironment {
-  getWindow?: () => Window | undefined;
-  getDocument?: () => Document | undefined;
+  getWindow?: () => Window | { Shopify?: { actions?: Partial<ShopifyActions> } } | undefined;
+  getDocument?: () => (EventTarget & { readyState?: DocumentReadyState }) | undefined;
 }
 
 export const STORE_NAME: 'shopifyCart';

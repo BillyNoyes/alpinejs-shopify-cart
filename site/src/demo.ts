@@ -40,8 +40,8 @@ export function installDemo(Alpine: Alpine) {
 
   // Only the transport is simulated; the demo exercises the package's actual store and magic.
   Alpine.plugin(createPlugin({
-    getWindow: () => ({ Shopify: { actions } }) as unknown as Window & typeof globalThis,
-    getDocument: () => target as unknown as Document,
+    getWindow: () => ({ Shopify: { actions } }),
+    getDocument: () => target,
   }));
 
   Alpine.data('cartDemo', () => ({
