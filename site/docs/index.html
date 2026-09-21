@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Set up Alpine Shopify Cart. Read the $cart API, standard events, errors, lifecycle, and theme integration guide.">
+<meta property="og:title" content="Documentation | Alpine Shopify Cart">
+<meta property="og:description" content="A practical reference for Alpine's $cart magic on Shopify Liquid storefronts.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://billynoyes.github.io/alpinejs-shopify-cart/docs/">
+<meta name="twitter:card" content="summary">
+<link rel="canonical" href="https://billynoyes.github.io/alpinejs-shopify-cart/docs/">
+<link rel="icon" href="/cart.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/inter_n4.b2a3f24c19b4de56e8871f609e73ca7f6d2e2bb9.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter_n7.02711e6b374660cfc7915d1afc1c204e633421e4.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/src/style.css">
+<script type="module" src="/src/main.ts"></script>
+<title>Documentation | Alpine Shopify Cart</title>
+</head>
+<body x-data="docsNavigation($el)">
+<div class="shell">
+<a href="#main" class="skip-link">Skip to content</a>
+<header class="site-header">
+<a href="../" class="wordmark" aria-label="Alpine Shopify Cart home"><code>$cart</code><span>Alpine Shopify Cart</span></a>
+<nav aria-label="Primary navigation"><a href="./" aria-current="page">Documentation</a><a href="https://github.com/BillyNoyes/alpinejs-shopify-cart">GitHub</a></nav>
+</header>
+<div class="docs-grid">
+<aside class="docs-sidebar">
+<details open>
+<summary>On this page</summary>
+<div class="nav-filter" x-cloak><label for="filter">Find a section</label><input id="filter" type="search" x-model="query" placeholder="Filter sections…" autocomplete="off"></div>
+<nav class="docs-nav" aria-label="Documentation sections"><a href="#getting-started" @click="navigate" :aria-current="active === 'getting-started' ? 'location' : null" x-show="matches('Getting started')">Getting started</a><a href="#installation" @click="navigate" :aria-current="active === 'installation' ? 'location' : null" x-show="matches('Installation')">Installation</a><a href="#reactive-state" @click="navigate" :aria-current="active === 'reactive-state' ? 'location' : null" x-show="matches('Reactive state')">Reactive state</a><a href="#cart-methods" @click="navigate" :aria-current="active === 'cart-methods' ? 'location' : null" x-show="matches('Cart methods')">Cart methods</a><a href="#events" @click="navigate" :aria-current="active === 'events' ? 'location' : null" x-show="matches('Events & synchronization')">Events & synchronization</a><a href="#errors" @click="navigate" :aria-current="active === 'errors' ? 'location' : null" x-show="matches('Errors & warnings')">Errors & warnings</a><a href="#theme-behavior" @click="navigate" :aria-current="active === 'theme-behavior' ? 'location' : null" x-show="matches('Theme behavior')">Theme behavior</a><a href="#lifecycle" @click="navigate" :aria-current="active === 'lifecycle' ? 'location' : null" x-show="matches('Lifecycle & limitations')">Lifecycle & limitations</a><a href="#reference" @click="navigate" :aria-current="active === 'reference' ? 'location' : null" x-show="matches('Reference')">Reference</a></nav>
+<p class="no-results" role="status" x-show="!hasResults" x-cloak>No matching sections.</p>
+</details>
+</aside>
+<main id="main" tabindex="-1">
+<article class="docs-article">
+<h1>Documentation</h1>
+<p class="lede">One reactive cart. From the first add to the next update.</p>
+<section id="getting-started" tabindex="-1"><h2>A cart shared across your theme.</h2><p><code>$cart</code> gives Alpine components a shared, reactive view of a Shopify cart. Reads, writes, and opening the cart go through Shopify’s standard storefront actions. The theme stays in charge of its HTML and cart presentation.</p>
+<div class="note"><p><strong>Development preview.</strong> The package is not published on npm. Build from source to try it. <a href="https://github.com/BillyNoyes/alpinejs-shopify-cart/pull/2">Live-store compatibility fixes in PR #2</a> are separate from the initial implementation on main; the setup below pins the tested revision.</p></div>
+<p>You need Alpine.js 3 and a Shopify Liquid storefront with <code>Shopify.actions</code>. This is not a headless Storefront API client, a Shopify Admin integration, or a checkout extension.</p></section><section id="installation" tabindex="-1"><h2>Install from source</h2><p>Until a package release is available, build the repository locally. This revision includes the action-readiness and cart-line compatibility fixes.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Terminal</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Terminal">Copy</button></div>
+<pre tabindex="0" aria-label="Terminal"><code>git clone https://github.com/BillyNoyes/alpinejs-shopify-cart.git
+cd alpinejs-shopify-cart
+git checkout dce72cd92190cd4f22dc278e2b4a53fd33b4b3ef
+npm ci
+npm run build</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><h3>Use theme assets</h3><p>Copy <code>dist/alpinejs-shopify-cart.min.js</code> into your theme’s <code>assets/</code> directory. Add Alpine’s CDN build to that directory as <code>alpine.js</code>. Load the plugin before Alpine, and load Alpine only once.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>layout/theme.liquid</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy layout/theme.liquid">Copy</button></div>
+<pre tabindex="0" aria-label="layout/theme.liquid"><code>&lt;script defer src=&quot;{{ &#x27;alpinejs-shopify-cart.min.js&#x27; | asset_url }}&quot;&gt;&lt;/script&gt;
+&lt;script defer src=&quot;{{ &#x27;alpine.js&#x27; | asset_url }}&quot;&gt;&lt;/script&gt;</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><h3>Use a JavaScript bundle</h3><p>From an application with Alpine installed, import the built ES module using a path relative to your source file. Register the plugin before calling <code>Alpine.start()</code>.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>theme.js</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy theme.js">Copy</button></div>
+<pre tabindex="0" aria-label="theme.js"><code>import Alpine from &#x27;alpinejs&#x27;
+import shopifyCart from &#x27;./vendor/alpinejs-shopify-cart/dist/index.js&#x27;
+
+Alpine.plugin(shopifyCart)
+Alpine.start()</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><p>The plugin automatically starts a cart read during initialization. On the tested revision it defers that read to a task after the relevant DOM initialization work. Check <code>$cart.error</code> if your runtime is unavailable.</p></section><section id="reactive-state" tabindex="-1"><h2>Read reactive state</h2><p>Every <code>$cart</code> reference resolves to <code>Alpine.store('shopifyCart')</code>. Updating the cart in one component updates dependent expressions elsewhere.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Cart count</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Cart count">Copy</button></div>
+<pre tabindex="0" aria-label="Cart count"><code>&lt;div x-data&gt;
+  &lt;span x-text=&quot;$cart.totalQuantity&quot;&gt;&lt;/span&gt;
+  &lt;span x-show=&quot;$cart.pending&quot;&gt;Updating cart…&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><div class="table-scroll" tabindex="0" role="region" aria-label="Cart state"><table><caption>Cart state</caption><thead><tr><th scope="col">Property</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td><code>ready</code></td><td>The initial read attempt finished, including failure. Check error separately.</td></tr><tr><td><code>cart</code></td><td>Raw Shopify cart result, or null when no cart exists.</td></tr><tr><td><code>lines</code></td><td>Cart line array. The tested revision also accepts a lines.nodes connection.</td></tr><tr><td><code>totalQuantity</code></td><td>Quantity across all lines; zero before a cart is available.</td></tr><tr><td><code>cost</code></td><td>Cart cost, or null. Money amounts are decimal strings with a currencyCode.</td></tr><tr><td><code>discountCodes</code></td><td>Codes returned by Shopify, including applicability.</td></tr><tr><td><code>pending</code></td><td>Whether local or observed external operations remain pending.</td></tr><tr><td><code>pendingCount</code></td><td>Number of tracked operations, including queued local calls.</td></tr><tr><td><code>pendingOperation</code></td><td>Most recently registered pending operation, or null.</td></tr><tr><td><code>note / attributes</code></td><td>Last successfully observed values; undefined until known.</td></tr><tr><td><code>error</code></td><td>Rejected operation details, or null.</td></tr><tr><td><code>userErrors / warnings</code></td><td>Shopify’s resolved validation errors and non-blocking warnings.</td></tr><tr><td><code>detail</code></td><td>Custom detail from the most recently applied result.</td></tr></tbody></table></div><div class="note"><p><strong>A summary, not a product catalog.</strong> Standard cart lines expose IDs, quantity, and cost. They do not supply product titles, images, or full merchandise objects. Render those through Liquid or a separate product-data source. Do not divide money amounts by 100.</p></div></section><section id="cart-methods" tabindex="-1"><h2>Change the cart</h2><p>Mutation methods return the full Shopify result: <code>{ cart, userErrors, warnings, detail }</code>. Requests can reject, so catch failures in your component logic. Local calls are queued in order.</p>
+<h3>Add a variant</h3><p>Pass a variant ID as <code>merchandiseId</code>, not a cart line ID. A Shopify GID or a documented raw ID can be used.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Add a product</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Add a product">Copy</button></div>
+<pre tabindex="0" aria-label="Add a product"><code>const result = await this.$cart.add(
+  { merchandiseId: this.variantId, quantity: 1 },
+  { context: &#x27;product&#x27; }
+)
+
+if (result.userErrors?.length) return
+await this.$cart.open()</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><h3>Update or remove a line</h3><p>Use the line ID returned by Shopify. Quantities are absolute targets, not increments. Disable controls while pending if they derive a new quantity from the current snapshot.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Line operations</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Line operations">Copy</button></div>
+<pre tabindex="0" aria-label="Line operations"><code>await this.$cart.update({ id: line.id, quantity: 2 })
+await this.$cart.remove(line.id)
+
+// Both methods also accept arrays.
+await this.$cart.remove([firstLine.id, secondLine.id])</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><h3>Notes, attributes, and discounts</h3><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Cart metadata</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Cart metadata">Copy</button></div>
+<pre tabindex="0" aria-label="Cart metadata"><code>await this.$cart.setNote(&#x27;Leave at the front desk&#x27;)
+await this.$cart.setAttributes([
+  { key: &#x27;Gift wrap&#x27;, value: &#x27;Yes&#x27; }
+])
+await this.$cart.setDiscountCodes([&#x27;WELCOME10&#x27;])</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><p><strong>Attributes and discount codes replace the complete set.</strong> Include every value you want to retain. An empty array clears the set. An empty string clears the note.</p>
+<h3>Send a complete standard payload</h3><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Advanced mutation</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Advanced mutation">Copy</button></div>
+<pre tabindex="0" aria-label="Advanced mutation"><code>await this.$cart.mutate({
+  lines: [{ id: line.id, quantity: 2 }],
+  note: &#x27;Gift order&#x27;
+}, {
+  context: &#x27;cart&#x27;,
+  detail: { source: &#x27;cart-page&#x27; }
+})</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><h3>Refresh and open</h3><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Read and present</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Read and present">Copy</button></div>
+<pre tabindex="0" aria-label="Read and present"><code>await this.$cart.refresh()
+await this.$cart.open()</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><div class="table-scroll" tabindex="0" role="region" aria-label="Method reference"><table><caption>Method reference</caption><thead><tr><th scope="col">Method</th><th scope="col">Input</th></tr></thead><tbody><tr><td><code>add(lines, options?)</code></td><td>One line or an array; merchandiseId, quantity, optional attributes and sellingPlanId.</td></tr><tr><td><code>update(lines, options?)</code></td><td>One existing line or an array with id and quantity.</td></tr><tr><td><code>remove(ids, options?)</code></td><td>One line ID or an array; sent with quantity zero.</td></tr><tr><td><code>setNote(note, options?)</code></td><td>String.</td></tr><tr><td><code>setAttributes(values, options?)</code></td><td>Complete array of key/value pairs.</td></tr><tr><td><code>setDiscountCodes(codes, options?)</code></td><td>Complete array of code strings.</td></tr><tr><td><code>mutate(payload, options?)</code></td><td>Standard updateCart payload.</td></tr><tr><td><code>refresh(options?)</code></td><td>Optional cartId and signal. Returns { cart }.</td></tr><tr><td><code>open()</code></td><td>No arguments. Returns Promise&lt;void&gt;.</td></tr></tbody></table></div><p>Mutation options accept <code>signal</code>, <code>context</code>, <code>detail</code>, and the standard nested <code>event</code> options. Top-level context and detail take precedence over their nested counterparts. Prefer one style consistently.</p></section><section id="events" tabindex="-1"><h2>Receive cart updates</h2><p>The plugin subscribes to standard events on <code>document</code>. Event properties live directly on the event, including its result promise; they are not all nested under <code>event.detail</code>.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Observe a standard event</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Observe a standard event">Copy</button></div>
+<pre tabindex="0" aria-label="Observe a standard event"><code>document.addEventListener(&#x27;shopify:cart:lines-update&#x27;, event =&gt; {
+  event.promise.then(({ cart, userErrors, warnings }) =&gt; {
+    // Inspect the settled result, not just the initial event.
+    console.log(cart?.totalQuantity, userErrors, warnings)
+  }).catch(error =&gt; {
+    console.error(error)
+  })
+})</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><div class="table-scroll" tabindex="0" role="region" aria-label="Observed events"><table><caption>Observed events</caption><thead><tr><th scope="col">Event</th><th scope="col">Behavior</th></tr></thead><tbody><tr><td><code>shopify:cart:lines-update</code></td><td>Add, update, or remove operation; waits for event.promise.</td></tr><tr><td><code>shopify:cart:note-update</code></td><td>Retains the requested note after a successful result.</td></tr><tr><td><code>shopify:cart:attributes-update</code></td><td>Retains attributes after a successful result.</td></tr><tr><td><code>shopify:cart:discount-update</code></td><td>Reconciles discount codes from the returned cart.</td></tr><tr><td><code>shopify:cart:error</code></td><td>Records a request failure.</td></tr><tr><td><code>shopify:cart:view</code></td><td>Reads the cart supplied by the view event.</td></tr></tbody></table></div><p><code>Shopify.actions.updateCart()</code> emits its own events. Do not dispatch an additional cart event after using <code>$cart</code>. The plugin tags its own calls to avoid counting them twice.</p>
+<p>Changes made outside standard actions are observable only if the theme or app emits the standard events. This plugin does not intercept <code>fetch</code>, poll the cart, or watch arbitrary markup.</p>
+<div class="note"><p><strong>Not an analytics channel.</strong> These storefront events do not establish tracking consent. Use Shopify Web Pixels for consent-aware analytics.</p></div></section><section id="errors" tabindex="-1"><h2>Handle errors without guessing</h2><p>There are three distinct outcomes. A rejected promise represents a failed request. <code>userErrors</code> describes a mutation Shopify declined. <code>warnings</code> describes a change that succeeded with an adjustment.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Alpine.data product form</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Alpine.data product form">Copy</button></div>
+<pre tabindex="0" aria-label="Alpine.data product form"><code>Alpine.data(&#x27;productForm&#x27;, variantId =&gt; ({
+  variantId,
+  message: &#x27;&#x27;,
+  async add() {
+    this.message = &#x27;&#x27;
+    try {
+      const result = await this.$cart.add({
+        merchandiseId: this.variantId,
+        quantity: 1
+      })
+      if (result.userErrors?.length) {
+        this.message = result.userErrors[0].message
+        return
+      }
+      this.message = result.warnings?.[0]?.message ?? &#x27;Added to cart.&#x27;
+    } catch (error) {
+      this.message = error.message ?? &#x27;Could not update the cart. Try again.&#x27;
+    }
+  }
+}))</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><p>Register this provider before starting Alpine. Wire a button to <code>add()</code>, disable it with <code>$cart.pending</code>, and render <code>message</code> in a live region. The store also records rejected errors; explicit method callers must still handle promise rejection.</p></section><section id="theme-behavior" tabindex="-1"><h2>Let the theme own the UI</h2><p><code>$cart.open()</code> calls <code>Shopify.actions.openCart()</code>. Depending on the theme, that opens a drawer or navigates to the cart page. There is no plugin-owned open state or close method.</p>
+<div class="note"><p><strong>Standard actions can reload the page.</strong> Shopify’s default update behavior may reload when it cannot recognize the theme’s cart UI. A reactive magic alone does not disable that fallback.</p></div>
+<p>For an in-place experience, the theme must configure an appropriate <code>updateCart</code> handler and event target. Configure a theme-specific <code>openCart</code> handler if needed. This plugin intentionally does not claim those configurations.</p>
+<p>Use <a href="https://shopify.dev/docs/api/storefront-events-and-actions/actions/configure">Shopify’s action configuration reference</a>. Only the first configuration takes effect. Test the actual theme, not just a mocked API, and do not assume wrapping a default handler suppresses its reload.</p></section><section id="lifecycle" tabindex="-1"><h2>Lifecycle and limits</h2><p>The store and its document listeners belong to the page, not to an individual Alpine component. Removing one cart widget must not disconnect other widgets. Register the plugin once before Alpine initializes.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Access from JavaScript</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Access from JavaScript">Copy</button></div>
+<pre tabindex="0" aria-label="Access from JavaScript"><code>const cart = Alpine.store(&#x27;shopifyCart&#x27;)
+await cart.refresh()
+
+// Only at application teardown, not when one widget unmounts.
+cart.dispose()</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><p><code>dispose()</code> removes listeners and blocks new calls. It is terminal, not a restart API. It does not guarantee that already queued work or server-side mutations are cancelled. Do not use it as a network cancellation mechanism.</p>
+<p>The plugin queues local calls and uses local revisions to reject older results. Standard events do not carry a global server revision, so this is not a guarantee against every race involving unrelated scripts. Test overlapping updates in your integration.</p>
+<ul><li>No built-in checkout, product selector, currency formatter, or cart drawer.</li><li>No cross-tab synchronization or legacy Ajax API fallback.</li><li>Notes and attributes are unknown until observed; the standard summary does not hydrate them.</li><li>Use <code>$cart.lines</code> rather than depending on a single raw line shape.</li></ul></section><section id="reference" tabindex="-1"><h2>Go to the source</h2><ul>
+<li><a href="https://github.com/BillyNoyes/alpinejs-shopify-cart">Source code and issues</a></li>
+<li><a href="https://github.com/BillyNoyes/alpinejs-shopify-cart/blob/main/index.d.ts">TypeScript declarations</a></li>
+<li><a href="https://github.com/BillyNoyes/alpinejs-shopify-cart/pull/2">Live-store compatibility fixes</a></li>
+<li><a href="https://shopify.dev/docs/storefronts/themes/best-practices/standard-events-and-actions">Shopify standard storefront events and actions</a></li>
+<li><a href="https://alpinejs.dev/advanced/extending">Alpine plugin authoring</a></li>
+</ul><p>Before shipping a theme integration, run Shopify CLI with the standard events inspector and exercise real cart operations, failure paths, and your theme’s cart presentation.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Shopify development server</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Shopify development server">Copy</button></div>
+<pre tabindex="0" aria-label="Shopify development server"><code>shopify theme dev --standard-events-inspector</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div></section>
+<div class="docs-bottom"><a href="https://github.com/BillyNoyes/alpinejs-shopify-cart/issues">Something unclear? Open an issue.</a></div>
+</article>
+</main>
+</div>
+<footer class="site-footer"><span>Alpine Shopify Cart. MIT licensed.</span><span>Built by <a href="https://billynoyes.co.uk/">Billy Noyes</a>. Not affiliated with Shopify or Alpine.js.</span></footer>
+</div>
+</body>
+</html>

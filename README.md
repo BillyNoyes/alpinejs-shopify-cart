@@ -247,6 +247,17 @@ It does not target:
 - [`openCart`](https://shopify.dev/docs/api/storefront-events-and-actions/actions/open-cart)
 - [Standard storefront events](https://shopify.dev/docs/api/storefront-events-and-actions/events)
 
+## Website
+
+The landing page and documentation live in [`site/`](./site/). They use Alpine.js, Tailwind CSS, Vite, and self-hosted Inter fonts.
+
+```sh
+npm --prefix site ci
+npm --prefix site run dev
+```
+
+See [site/README.md](./site/README.md) for browser tests and GitHub Pages deployment. The site workflow validates pull requests and deploys changes from `main`.
+
 ## Development plan
 
 See [PLAN.md](./PLAN.md) for the proposed architecture, milestones, testing strategy, and release criteria. The exact platform assumptions used by the implementation are recorded in [Shopify standard cart contract](./docs/SHOPIFY_STANDARD_CONTRACT.md).
