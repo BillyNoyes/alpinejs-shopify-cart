@@ -41,6 +41,7 @@ test('header, footer, and homepage links match the site copy', async ({ page }) 
   await expect(page.getByRole('button', { name: 'Add to cart', exact: true })).toBeEnabled();
   await expect(page.getByRole('link', { name: 'Get started', exact: true })).toHaveAttribute('href', './docs/');
   await expect(page.getByText('Built on Shopify standards', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Local demo, no checkout', { exact: true })).toHaveCount(0);
   await expect(page.locator('.demo-status')).toBeEmpty();
 });
 
