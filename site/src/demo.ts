@@ -46,7 +46,7 @@ export function installDemo(Alpine: Alpine) {
 
   Alpine.data('cartDemo', () => ({
     action: 'add',
-    message: 'Try a cart operation. No store is connected.',
+    message: '',
     get snippet() {
       const snippets: Record<string, string> = {
         add: '<button\n  @click="$cart.add({\n    merchandiseId: variantId, quantity: 1\n  })"\n>Add to cart</button>',

@@ -28,6 +28,22 @@ for (const colorScheme of ['light', 'dark'] as const) {
   }
 }
 
+test('header, footer, and homepage links match the site copy', async ({ page }) => {
+  for (const route of ['./', './docs/']) {
+    await page.goto(route);
+    const navigation = page.getByRole('navigation', { name: 'Primary navigation' });
+    await expect(navigation.getByRole('link')).toHaveCount(1);
+    await expect(navigation.getByRole('link', { name: 'GitHub', exact: true })).toBeVisible();
+    await expect(page.locator('footer')).toContainText('Built by Billy Noyes. An independent project with no Shopify sponsorship or endorsement.');
+    await expect(page.locator('footer').getByRole('link', { name: 'Billy Noyes', exact: true })).toHaveAttribute('href', 'https://billynoyes.co.uk/');
+  }
+  await page.goto('./');
+  await expect(page.getByRole('button', { name: 'Add to cart', exact: true })).toBeEnabled();
+  await expect(page.getByRole('link', { name: 'Get started', exact: true })).toHaveAttribute('href', './docs/');
+  await expect(page.getByText('Built on Shopify standards', { exact: true })).toHaveCount(0);
+  await expect(page.locator('.demo-status')).toBeEmpty();
+});
+
 test('demo runs the real plugin with local data and never contacts a store', async ({ page }) => {
   const requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
@@ -104,7 +120,7 @@ test('navigation works under the GitHub project prefix and without JavaScript', 
   const page = await context.newPage();
   await page.goto('http://127.0.0.1:4175/alpinejs-shopify-cart/');
   await page.getByRole('link', { name: 'Get started', exact: true }).click();
-  await expect(page).toHaveURL(/\/alpinejs-shopify-cart\/docs\/#installation$/);
+  await expect(page).toHaveURL(/\/alpinejs-shopify-cart\/docs\/$/);
   await expect(page.locator('#installation')).toBeVisible();
   await expect(page.locator('.docs-nav').getByRole('link', { name: 'Errors & warnings' })).toBeVisible();
   await page.getByRole('link', { name: 'Alpine Shopify Cart home' }).click();
