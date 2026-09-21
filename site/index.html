@@ -41,22 +41,27 @@
             <div class="demo-frame">
               <div class="demo-code">
                 <div class="demo-tabs" role="group" aria-label="Choose a cart operation">
-                  <button type="button" @click="action = 'add'" :aria-pressed="action === 'add'" aria-pressed="true">Add</button>
-                  <button type="button" @click="action = 'update'" :aria-pressed="action === 'update'" aria-pressed="false">Update</button>
-                  <button type="button" @click="action = 'remove'" :aria-pressed="action === 'remove'" aria-pressed="false">Remove</button>
-                  <span class="ml-auto pr-2 font-mono text-xs text-[var(--muted)]">HTML</span>
+                  <button type="button" @click="selectAction('add')" :disabled="$cart.pending" :aria-pressed="action === 'add'" aria-pressed="true">Add</button>
+                  <button type="button" @click="selectAction('update')" :disabled="$cart.pending" :aria-pressed="action === 'update'" aria-pressed="false">Update</button>
+                  <button type="button" @click="selectAction('properties')" :disabled="$cart.pending" :aria-pressed="action === 'properties'" aria-pressed="false">Properties</button>
+                  <button type="button" @click="selectAction('remove')" :disabled="$cart.pending" :aria-pressed="action === 'remove'" aria-pressed="false">Remove</button>
+                  <span class="ml-auto hidden pr-2 font-mono text-xs text-[var(--muted)] sm:block">HTML</span>
                 </div>
-                <pre tabindex="0" aria-label="Alpine cart example"><code x-text="snippet">&lt;button
-  @click="$cart.add({
-    merchandiseId: variantId, quantity: 1
-  })"
-&gt;Add to cart&lt;/button&gt;</code></pre>
+                <pre tabindex="0" aria-label="Alpine cart example"><code x-text="snippet">&lt;button @click="$cart.add({
+  merchandiseId: variantId,
+  quantity: 1,
+  attributes: []
+})"&gt;Add to cart&lt;/button&gt;</code></pre>
               </div>
               <div class="demo-preview">
                 <div class="cart-heading"><span>Your cart</span><output aria-label="Cart item count"><span x-text="$cart.totalQuantity">0</span> <span x-text="$cart.totalQuantity === 1 ? 'item' : 'items'">items</span></output></div>
                 <div class="cart-product">
                   <div><p>Canvas tote</p><small>Natural / Example product</small></div>
                   <span class="text-sm tabular-nums">£24.00</span>
+                </div>
+                <div class="demo-properties">
+                  <label><input type="checkbox" x-model="giftWrap" :disabled="$cart.pending || !['add', 'properties'].includes(action)"> Gift wrap</label>
+                  <output aria-label="Gift-wrapped items"><span x-text="giftWrapCount">0</span> gift-wrapped</output>
                 </div>
                 <div class="demo-footer">
                   <button type="button" class="button button-primary" @click="run" :disabled="disabled" x-text="$cart.pending ? 'Updating…' : label" disabled>Add to cart</button>

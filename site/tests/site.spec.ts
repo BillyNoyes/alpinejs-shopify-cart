@@ -64,6 +64,40 @@ test('demo runs the real plugin with local data and never contacts a store', asy
   expect(requests.every(url => new URL(url).hostname === '127.0.0.1')).toBe(true);
 });
 
+test('gift-wrap properties travel through the demo cart and can be edited', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 600 });
+  await page.goto('./');
+  const checkbox = page.getByRole('checkbox', { name: 'Gift wrap', exact: true });
+  const count = page.getByRole('status', { name: 'Cart item count' });
+  const wrapped = page.getByRole('status', { name: 'Gift-wrapped items' });
+  await checkbox.check();
+  await expect(page.locator('.demo-code code')).toContainText("{ key: 'Gift wrap', value: 'Yes' }");
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
+  await page.getByRole('button', { name: 'Add to cart', exact: true }).click();
+  await expect(count).toHaveText('1 item');
+  await expect(wrapped).toHaveText('1 gift-wrapped');
+  await page.getByRole('button', { name: 'Properties', exact: true }).click();
+  await expect(checkbox).toBeChecked();
+  await checkbox.uncheck();
+  await expect(page.locator('.demo-code code')).toContainText('attributes: []');
+  await page.getByRole('button', { name: 'Save properties', exact: true }).click();
+  await expect(wrapped).toHaveText('0 gift-wrapped');
+  await expect(count).toHaveText('1 item');
+  await checkbox.check();
+  await page.getByRole('button', { name: 'Save properties', exact: true }).click();
+  await expect(wrapped).toHaveText('1 gift-wrapped');
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await checkbox.uncheck();
+  await page.getByRole('button', { name: 'Add to cart', exact: true }).click();
+  await expect(count).toHaveText('2 items');
+  await expect(wrapped).toHaveText('1 gift-wrapped');
+  await page.getByRole('button', { name: 'Remove', exact: true }).click();
+  await page.getByRole('button', { name: 'Remove item', exact: true }).click();
+  await expect(count).toHaveText('1 item');
+  await expect(wrapped).toHaveText('0 gift-wrapped');
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
+});
+
 for (const colorScheme of ['light', 'dark'] as const) {
   for (const width of [1440, 390]) {
     test(`docs ${colorScheme} ${width}`, async ({ page }, info) => {

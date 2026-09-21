@@ -115,6 +115,8 @@ await cart.mutate({
 
 Quantities are absolute targets. When deriving a new quantity from current state, disable controls while pending to avoid repeatedly submitting the same target.
 
+For complete examples, see [line-item properties and a gift-wrap form](https://billynoyes.github.io/alpinejs-shopify-cart/docs/#line-properties) and [cart recipes](https://billynoyes.github.io/alpinejs-shopify-cart/docs/#examples), including multi-item adds, selling plans, notes, attributes, and discounts.
+
 ## Errors and warnings
 
 ```js

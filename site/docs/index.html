@@ -30,7 +30,7 @@
 <details open>
 <summary>On this page</summary>
 <div class="nav-filter" x-cloak><label for="filter">Find a section</label><input id="filter" type="search" x-model="query" placeholder="Filter sections…" autocomplete="off"></div>
-<nav class="docs-nav" aria-label="Documentation sections"><a href="#getting-started" @click="navigate" :aria-current="active === 'getting-started' ? 'location' : null" x-show="matches('Getting started')">Getting started</a><a href="#installation" @click="navigate" :aria-current="active === 'installation' ? 'location' : null" x-show="matches('Installation')">Installation</a><a href="#reactive-state" @click="navigate" :aria-current="active === 'reactive-state' ? 'location' : null" x-show="matches('Reactive state')">Reactive state</a><a href="#cart-methods" @click="navigate" :aria-current="active === 'cart-methods' ? 'location' : null" x-show="matches('Cart methods')">Cart methods</a><a href="#events" @click="navigate" :aria-current="active === 'events' ? 'location' : null" x-show="matches('Events & synchronization')">Events & synchronization</a><a href="#errors" @click="navigate" :aria-current="active === 'errors' ? 'location' : null" x-show="matches('Errors & warnings')">Errors & warnings</a><a href="#theme-behavior" @click="navigate" :aria-current="active === 'theme-behavior' ? 'location' : null" x-show="matches('Theme behavior')">Theme behavior</a><a href="#lifecycle" @click="navigate" :aria-current="active === 'lifecycle' ? 'location' : null" x-show="matches('Lifecycle & limitations')">Lifecycle & limitations</a><a href="#reference" @click="navigate" :aria-current="active === 'reference' ? 'location' : null" x-show="matches('Reference')">Reference</a></nav>
+<nav class="docs-nav" aria-label="Documentation sections"><a href="#getting-started" @click="navigate" :aria-current="active === 'getting-started' ? 'location' : null" x-show="matches('Getting started')">Getting started</a><a href="#installation" @click="navigate" :aria-current="active === 'installation' ? 'location' : null" x-show="matches('Installation')">Installation</a><a href="#reactive-state" @click="navigate" :aria-current="active === 'reactive-state' ? 'location' : null" x-show="matches('Reactive state')">Reactive state</a><a href="#cart-methods" @click="navigate" :aria-current="active === 'cart-methods' ? 'location' : null" x-show="matches('Cart methods')">Cart methods</a><a href="#line-properties" @click="navigate" :aria-current="active === 'line-properties' ? 'location' : null" x-show="matches('Line-item properties')">Line-item properties</a><a href="#examples" @click="navigate" :aria-current="active === 'examples' ? 'location' : null" x-show="matches('More cart recipes')">More cart recipes</a><a href="#events" @click="navigate" :aria-current="active === 'events' ? 'location' : null" x-show="matches('Events & synchronization')">Events & synchronization</a><a href="#errors" @click="navigate" :aria-current="active === 'errors' ? 'location' : null" x-show="matches('Errors & warnings')">Errors & warnings</a><a href="#theme-behavior" @click="navigate" :aria-current="active === 'theme-behavior' ? 'location' : null" x-show="matches('Theme behavior')">Theme behavior</a><a href="#lifecycle" @click="navigate" :aria-current="active === 'lifecycle' ? 'location' : null" x-show="matches('Lifecycle & limitations')">Lifecycle & limitations</a><a href="#reference" @click="navigate" :aria-current="active === 'reference' ? 'location' : null" x-show="matches('Reference')">Reference</a></nav>
 <p class="no-results" role="status" x-show="!hasResults" x-cloak>No matching sections.</p>
 </details>
 </aside>
@@ -100,7 +100,158 @@ await this.$cart.setDiscountCodes([&#x27;WELCOME10&#x27;])</code></pre>
 <div class="code-toolbar"><span>Read and present</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Read and present">Copy</button></div>
 <pre tabindex="0" aria-label="Read and present"><code>await this.$cart.refresh()
 await this.$cart.open()</code></pre>
-<div class="copy-status" role="status" x-text="status"></div></div><div class="table-scroll" tabindex="0" role="region" aria-label="Method reference"><table><caption>Method reference</caption><thead><tr><th scope="col">Method</th><th scope="col">Input</th></tr></thead><tbody><tr><td><code>add(lines, options?)</code></td><td>One line or an array; merchandiseId, quantity, optional attributes and sellingPlanId.</td></tr><tr><td><code>update(lines, options?)</code></td><td>One existing line or an array with id and quantity.</td></tr><tr><td><code>remove(ids, options?)</code></td><td>One line ID or an array; sent with quantity zero.</td></tr><tr><td><code>setNote(note, options?)</code></td><td>String.</td></tr><tr><td><code>setAttributes(values, options?)</code></td><td>Complete array of key/value pairs.</td></tr><tr><td><code>setDiscountCodes(codes, options?)</code></td><td>Complete array of code strings.</td></tr><tr><td><code>mutate(payload, options?)</code></td><td>Standard updateCart payload.</td></tr><tr><td><code>refresh(options?)</code></td><td>Optional cartId and signal. Returns { cart }.</td></tr><tr><td><code>open()</code></td><td>No arguments. Returns Promise&lt;void&gt;.</td></tr></tbody></table></div><p>Mutation options accept <code>signal</code>, <code>context</code>, <code>detail</code>, and the standard nested <code>event</code> options. Top-level context and detail take precedence over their nested counterparts. Prefer one style consistently.</p></section><section id="events" tabindex="-1"><h2>Receive cart updates</h2><p>The plugin subscribes to standard events on <code>document</code>. Event properties live directly on the event, including its result promise; they are not all nested under <code>event.detail</code>.</p><div class="code-block" x-data="copyCode($el)">
+<div class="copy-status" role="status" x-text="status"></div></div><div class="table-scroll" tabindex="0" role="region" aria-label="Method reference"><table><caption>Method reference</caption><thead><tr><th scope="col">Method</th><th scope="col">Input</th></tr></thead><tbody><tr><td><code>add(lines, options?)</code></td><td>One line or an array; merchandiseId, quantity, optional attributes and sellingPlanId.</td></tr><tr><td><code>update(lines, options?)</code></td><td>One existing line or an array with id and quantity.</td></tr><tr><td><code>remove(ids, options?)</code></td><td>One line ID or an array; sent with quantity zero.</td></tr><tr><td><code>setNote(note, options?)</code></td><td>String.</td></tr><tr><td><code>setAttributes(values, options?)</code></td><td>Complete array of key/value pairs.</td></tr><tr><td><code>setDiscountCodes(codes, options?)</code></td><td>Complete array of code strings.</td></tr><tr><td><code>mutate(payload, options?)</code></td><td>Standard updateCart payload.</td></tr><tr><td><code>refresh(options?)</code></td><td>Optional cartId and signal. Returns { cart }.</td></tr><tr><td><code>open()</code></td><td>No arguments. Returns Promise&lt;void&gt;.</td></tr></tbody></table></div><p>Mutation options accept <code>signal</code>, <code>context</code>, <code>detail</code>, and the standard nested <code>event</code> options. Top-level context and detail take precedence over their nested counterparts. Prefer one style consistently.</p></section><section id="line-properties" tabindex="-1">
+<h2>Line-item properties</h2>
+<p>Gift wrapping, engraving, and personalization belong to an individual cart line. With Shopify’s standard actions, send these as an <code>attributes</code> array of string <code>key</code>/<code>value</code> pairs inside the line input. Do not use the Ajax API’s <code>properties: { ... }</code> format with <code>$cart</code>.</p>
+<p>The recipes below run inside async component methods. Here <code>cart</code> means <code>this.$cart</code> or <code>Alpine.store('shopifyCart')</code>, and IDs come from your theme’s current product selection. Use the <a href="#errors">error-handling pattern</a> for each call.</p>
+<h3>Add personalized items</h3><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Add line-item properties</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Add line-item properties">Copy</button></div>
+<pre tabindex="0" aria-label="Add line-item properties"><code data-example="add-properties">await cart.add({
+  merchandiseId: variantId,
+  quantity: 1,
+  attributes: [
+    { key: &#x27;Gift wrap&#x27;, value: &#x27;Yes&#x27; },
+    { key: &#x27;Engraving&#x27;, value: engraving.trim() }
+  ]
+}, { context: &#x27;product&#x27; })</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><p>The same variant with different properties can produce separate cart lines. Use the fresh line IDs from Shopify when updating or removing items, not just the variant ID.</p>
+<h3>Wire a checkbox and text input</h3>
+<p>Register this provider before <code>Alpine.start()</code>. Use the markup as your product form inside a parent <code>x-data</code> scope that provides <code>selectedVariantId</code>. Do not nest it inside another form. The submit handler reads the selected variant when the buyer submits, rather than copying it only once.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Gift product component</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Gift product component">Copy</button></div>
+<pre tabindex="0" aria-label="Gift product component"><code data-example="gift-component">Alpine.data(&#x27;giftProduct&#x27;, () =&gt; ({
+  giftWrap: false,
+  engraving: &#x27;&#x27;,
+  message: &#x27;&#x27;,
+  async add(variantId) {
+    if (!this.$cart.ready || this.$cart.pending) return
+    this.message = &#x27;&#x27;
+    const attributes = this.giftWrap
+      ? [{ key: &#x27;Gift wrap&#x27;, value: &#x27;Yes&#x27; }]
+      : []
+    if (this.engraving.trim()) {
+      attributes.push({ key: &#x27;Engraving&#x27;, value: this.engraving.trim() })
+    }
+    try {
+      const result = await this.$cart.add({
+        merchandiseId: variantId, quantity: 1, attributes
+      }, { context: &#x27;product&#x27; })
+      this.message = result.userErrors?.[0]?.message
+        ?? result.warnings?.[0]?.message
+        ?? &#x27;Added to cart.&#x27;
+    } catch (error) {
+      this.message = error?.message ?? &#x27;Could not add this item. Try again.&#x27;
+    }
+  }
+}))</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Gift product markup</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Gift product markup">Copy</button></div>
+<pre tabindex="0" aria-label="Gift product markup"><code>&lt;form x-data=&quot;giftProduct&quot; @submit.prevent=&quot;add(selectedVariantId)&quot;&gt;
+  &lt;label&gt;
+    &lt;input type=&quot;checkbox&quot; x-model=&quot;giftWrap&quot; :disabled=&quot;$cart.pending&quot;&gt;
+    Gift wrap
+  &lt;/label&gt;
+  &lt;label&gt;
+    Engraving
+    &lt;input type=&quot;text&quot; x-model=&quot;engraving&quot; maxlength=&quot;30&quot; :disabled=&quot;$cart.pending&quot;&gt;
+  &lt;/label&gt;
+  &lt;button type=&quot;submit&quot; :disabled=&quot;!$cart.ready || $cart.pending&quot;&gt;
+    Add to cart
+  &lt;/button&gt;
+  &lt;p role=&quot;status&quot; x-text=&quot;message&quot;&gt;&lt;/p&gt;
+&lt;/form&gt;</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><h3>Edit properties on an existing line</h3>
+<p>Keep any other properties your theme wants to retain. In this example, <code>retainedAttributes</code> comes from your theme’s line-property data, not from the standard cart summary.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Update line-item properties</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Update line-item properties">Copy</button></div>
+<pre tabindex="0" aria-label="Update line-item properties"><code data-example="update-properties">await cart.update({
+  id: line.id,
+  quantity: line.quantity,
+  attributes: [
+    ...retainedAttributes.filter(attribute =&gt; attribute.key !== &#x27;Gift wrap&#x27;),
+    { key: &#x27;Gift wrap&#x27;, value: &#x27;Yes&#x27; }
+  ]
+}, { context: &#x27;cart&#x27; })</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Clear line-item properties</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Clear line-item properties">Copy</button></div>
+<pre tabindex="0" aria-label="Clear line-item properties"><code data-example="clear-properties">await cart.update({
+  id: line.id,
+  quantity: line.quantity,
+  attributes: []
+}, { context: &#x27;cart&#x27; })</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><div class="note"><p><strong>Inputs are not a product-data API.</strong> The standard cart summary does not return line attributes, titles, or images. Keep your property editor backed by Liquid or another appropriate data source; do not assume <code>$cart.lines[0].attributes</code> exists. Re-read the cart’s line IDs after a mutation rather than caching them.</p></div>
+<p><a href="https://shopify.dev/docs/api/storefront-events-and-actions/actions/update-cart">Shopify’s standard updateCart input reference</a> documents <code>attributes</code> and <code>sellingPlanId</code>.</p>
+</section><section id="examples" tabindex="-1"><h2>More cart recipes</h2>
+<p>These examples use the same <code>cart</code> instance as above. Values such as variant IDs and selling-plan IDs must come from your actual theme selection. Await the result, check <code>userErrors</code> and <code>warnings</code>, and catch rejected requests.</p>
+<h3>Add several items together</h3><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Add multiple items</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Add multiple items">Copy</button></div>
+<pre tabindex="0" aria-label="Add multiple items"><code data-example="multiple-items">await cart.add([
+  { merchandiseId: firstVariantId, quantity: 1 },
+  {
+    merchandiseId: secondVariantId,
+    quantity: 2,
+    attributes: [{ key: &#x27;Gift wrap&#x27;, value: &#x27;Yes&#x27; }]
+  }
+], { context: &#x27;product&#x27; })</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><p>This is a multi-line add, not a bundle definition. Shopify remains responsible for product availability, pricing, and any cart transforms.</p>
+<h3>Add a subscription selection</h3><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Add with a selling plan</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Add with a selling plan">Copy</button></div>
+<pre tabindex="0" aria-label="Add with a selling plan"><code data-example="selling-plan">await cart.add({
+  merchandiseId: variantId,
+  quantity: 1,
+  sellingPlanId: selectedSellingPlanId,
+  attributes: [{ key: &#x27;Gift wrap&#x27;, value: &#x27;Yes&#x27; }]
+}, { context: &#x27;product&#x27; })</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><p>The selling plan must be valid for the selected variant. Use <code>sellingPlanId</code>, not the Ajax API’s <code>selling_plan</code>. The plugin does not choose a plan, calculate subscription prices, or validate purchase eligibility locally.</p>
+<h3>Save a cart-level gift message</h3><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Set and clear a cart note</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Set and clear a cart note">Copy</button></div>
+<pre tabindex="0" aria-label="Set and clear a cart note"><code data-example="cart-note">await cart.setNote(giftMessage.trim())
+
+// Clear the cart note.
+await cart.setNote(&#x27;&#x27;)</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><p>A note belongs to the whole cart. For a message attached to one item, use a line attribute instead.</p>
+<h3>Save cart-level attributes</h3><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Set cart-level attributes</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Set cart-level attributes">Copy</button></div>
+<pre tabindex="0" aria-label="Set cart-level attributes"><code data-example="cart-attributes">await cart.setAttributes([
+  ...existingCartAttributes.filter(attribute =&gt; attribute.key !== &#x27;Delivery date&#x27;),
+  { key: &#x27;Delivery date&#x27;, value: deliveryDate }
+])</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><p><code>existingCartAttributes</code> must be hydrated by your theme or another data source. <code>$cart.attributes</code> starts undefined and is not a complete initial snapshot. Passing a partial set can remove attributes you did not intend to change.</p>
+<h3>Apply and remove a discount code</h3><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Apply a discount</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Apply a discount">Copy</button></div>
+<pre tabindex="0" aria-label="Apply a discount"><code data-example="apply-discount">const codes = [...new Set([
+  ...cart.discountCodes.map(discount =&gt; discount.code),
+  discountCode.trim()
+])]
+const result = await cart.setDiscountCodes(codes)
+
+if (result.userErrors?.length) {
+  showMessage(result.userErrors[0].message)
+} else if (result.cart?.discountCodes.some(discount =&gt; !discount.applicable)) {
+  showMessage(&#x27;One or more codes do not apply to this cart.&#x27;)
+} else if (result.warnings?.length) {
+  showMessage(result.warnings[0].message)
+}</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><p>Validate that the entered code is non-empty before submitting. <code>showMessage()</code> represents your theme’s feedback UI. A resolved request does not mean every requested code is applicable.</p><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Remove a discount</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Remove a discount">Copy</button></div>
+<pre tabindex="0" aria-label="Remove a discount"><code data-example="remove-discount">await cart.setDiscountCodes(
+  cart.discountCodes
+    .filter(discount =&gt; discount.code !== codeToRemove)
+    .map(discount =&gt; discount.code)
+)</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><h3>Combine line properties and a cart note</h3><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Combined cart mutation</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Combined cart mutation">Copy</button></div>
+<pre tabindex="0" aria-label="Combined cart mutation"><code data-example="combined-mutation">await cart.mutate({
+  lines: [{
+    id: line.id,
+    quantity: line.quantity,
+    attributes: [{ key: &#x27;Gift wrap&#x27;, value: &#x27;Yes&#x27; }]
+  }],
+  note: giftMessage
+}, { context: &#x27;cart&#x27; })</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><p>Here the nested <code>lines[].attributes</code> belongs to one line, while <code>note</code> belongs to the cart. A root-level <code>attributes</code> field would replace cart attributes. This example intentionally replaces the line’s properties; include other properties you need to retain.</p>
+<h3>Remove several lines</h3><div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>Remove selected lines</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Remove selected lines">Copy</button></div>
+<pre tabindex="0" aria-label="Remove selected lines"><code data-example="remove-lines">await cart.remove(selectedLineIds, { context: &#x27;cart&#x27; })</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div><p>Use current line IDs from <code>$cart.lines</code>, and pass only the lines the buyer selected. Removing items is a real cart mutation, not a local UI change.</p></section><section id="events" tabindex="-1"><h2>Receive cart updates</h2><p>The plugin subscribes to standard events on <code>document</code>. Event properties live directly on the event, including its result promise; they are not all nested under <code>event.detail</code>.</p><div class="code-block" x-data="copyCode($el)">
 <div class="code-toolbar"><span>Observe a standard event</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Observe a standard event">Copy</button></div>
 <pre tabindex="0" aria-label="Observe a standard event"><code>document.addEventListener(&#x27;shopify:cart:lines-update&#x27;, event =&gt; {
   event.promise.then(({ cart, userErrors, warnings }) =&gt; {

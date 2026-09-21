@@ -99,6 +99,10 @@
   .cart-product { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 48px; }
   .cart-product p { font-size: .875rem; }
   .cart-product small { display: block; color: var(--muted); font-size: .75rem; }
+  .demo-properties { display: flex; justify-content: space-between; align-items: center; gap: .75rem; margin-top: .75rem; font-size: .8125rem; }
+  .demo-properties label { display: flex; align-items: center; gap: .5rem; min-height: 32px; cursor: pointer; }
+  .demo-properties input { width: 16px; height: 16px; accent-color: var(--ink); }
+  .demo-properties output { color: var(--muted); font-variant-numeric: tabular-nums; }
   .demo-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.25rem; }
   .demo-footer code { color: var(--muted); font-size: .75rem; }
   .demo-status { min-height: 22px; margin-top: .75rem; font-size: .75rem; color: var(--muted); }
@@ -160,7 +164,9 @@
   .home-main { padding-block: .75rem; }
   .hero-title { font-size: 2.5rem; }
   .demo-code pre { min-height: 130px; padding: 1rem; }
-  .demo-preview { padding: 1rem; }
+  .demo-preview { padding: .75rem 1rem; }
+  .cart-heading { margin-bottom: .75rem; }
+  .demo-footer { margin-top: .75rem; }
   .site-footer { padding-block: .75rem; }
 }
 
