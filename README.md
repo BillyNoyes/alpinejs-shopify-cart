@@ -2,9 +2,7 @@
 
 A headless, reactive `$cart` magic for Alpine.js, powered by Shopify's standard storefront events and actions.
 
-[Documentation](https://billynoyes.github.io/alpinejs-shopify-cart/docs/) · [Local demo](https://billynoyes.github.io/alpinejs-shopify-cart/)
-
-**Status:** Working development implementation. Not published on npm; build from source to try it. The public API may change before the first release.
+[npm](https://www.npmjs.com/package/alpinejs-shopify-cart) · [Documentation](https://alpinejs-cart.billynoyes.co.uk/docs/) · [Demo](https://alpinejs-cart.billynoyes.co.uk/)
 
 ## What it does
 
@@ -17,37 +15,49 @@ A headless, reactive `$cart` magic for Alpine.js, powered by Shopify's standard 
 
 The plugin does not provide markup, CSS, a cart drawer, analytics, or an Ajax Cart API fallback. It targets Shopify Liquid storefronts, not Admin apps, checkout extensions, POS, or headless storefronts. No API token is needed.
 
-## Build from source
+## Installation
+
+Choose one approach. Load Alpine only once; if your theme already initializes it, register this plugin in that existing setup rather than adding another Alpine script or calling `Alpine.start()` again.
+
+### npm
 
 ```sh
-git clone https://github.com/BillyNoyes/alpinejs-shopify-cart.git
-cd alpinejs-shopify-cart
-npm ci
-npm run build
+npm install alpinejs@^3 alpinejs-shopify-cart@1.0.0
 ```
 
-### Theme assets
+Register the plugin before starting Alpine:
 
-Copy `dist/alpinejs-shopify-cart.min.js` into your theme's `assets/` directory. Copy Alpine's CDN build there as `alpine.js`. Load the plugin before Alpine, and load Alpine only once:
+```js
+import Alpine from 'alpinejs'
+import shopifyCart from 'alpinejs-shopify-cart'
+
+Alpine.plugin(shopifyCart)
+Alpine.start()
+```
+
+The package provides ES module and CommonJS entries and TypeScript declarations. Module imports do not auto-register.
+
+### CDN
+
+Load the plugin's auto-registering CDN build **before** Alpine. Both scripts should use `defer`:
+
+```html
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs-shopify-cart@1.0.0/dist/alpinejs-shopify-cart.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.4/dist/cdn.min.js"></script>
+```
+
+[Plugin on jsDelivr](https://cdn.jsdelivr.net/npm/alpinejs-shopify-cart@1.0.0/dist/alpinejs-shopify-cart.min.js) · [Package on npm](https://www.npmjs.com/package/alpinejs-shopify-cart)
+
+### Serve the files as theme assets
+
+If you prefer Shopify-hosted assets, copy `node_modules/alpinejs-shopify-cart/dist/alpinejs-shopify-cart.min.js` into your theme's `assets/` directory. Copy `node_modules/alpinejs/dist/cdn.min.js` there as `alpine.js`, then load them in the same order:
 
 ```liquid
 <script defer src="{{ 'alpinejs-shopify-cart.min.js' | asset_url }}"></script>
 <script defer src="{{ 'alpine.js' | asset_url }}"></script>
 ```
 
-### JavaScript bundle
-
-Import the built ES module using the appropriate local path:
-
-```js
-import Alpine from 'alpinejs'
-import shopifyCart from './vendor/alpinejs-shopify-cart/dist/index.js'
-
-Alpine.plugin(shopifyCart)
-Alpine.start()
-```
-
-The package also builds a CommonJS entry and includes TypeScript declarations. Module imports do not auto-register; the CDN entry does.
+Your theme must provide Shopify's standard storefront actions. This does not turn a standalone HTML page into a Shopify storefront.
 
 ## Reactive state
 
@@ -115,7 +125,7 @@ await cart.mutate({
 
 Quantities are absolute targets. When deriving a new quantity from current state, disable controls while pending to avoid repeatedly submitting the same target.
 
-For complete examples, see [line-item properties and a gift-wrap form](https://billynoyes.github.io/alpinejs-shopify-cart/docs/#line-properties) and [cart recipes](https://billynoyes.github.io/alpinejs-shopify-cart/docs/#examples), including multi-item adds, selling plans, notes, attributes, and discounts.
+For complete examples, see [line-item properties and a gift-wrap form](https://alpinejs-cart.billynoyes.co.uk/docs/#line-properties) and [cart recipes](https://alpinejs-cart.billynoyes.co.uk/docs/#examples), including multi-item adds, selling plans, notes, attributes, and discounts.
 
 ## Errors and warnings
 
@@ -175,6 +185,8 @@ Local requests are serialized, and stale responses do not replace newer successf
 Requires Node.js 20 or newer for the package; Node.js 24 for the site.
 
 ```sh
+git clone https://github.com/BillyNoyes/alpinejs-shopify-cart.git
+cd alpinejs-shopify-cart
 npm ci
 npx playwright install chromium firefox webkit
 npm test

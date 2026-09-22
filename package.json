@@ -1,6 +1,6 @@
 {
   "name": "alpinejs-shopify-cart",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A reactive Alpine.js cart magic powered by Shopify standard storefront events and actions",
   "type": "module",
   "main": "./dist/index.cjs",

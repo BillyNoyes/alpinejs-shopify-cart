@@ -1,4 +1,4 @@
-/*! Alpine.js Shopify Cart v0.1.0 | MIT License */
+/*! Alpine.js Shopify Cart v1.0.0 | MIT License */
 "use strict";
 (() => {
   // src/constants.js
