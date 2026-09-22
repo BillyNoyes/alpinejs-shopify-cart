@@ -22,7 +22,7 @@ npm test
 
 `npm run check` runs the build, type check, local-link checks, and browser tests. Browser tests mount the built site at `/alpinejs-shopify-cart/` to exercise real GitHub Pages subpath behavior. Screenshots are saved under ignored `test-results/` and uploaded by CI.
 
-The home demo imports the repository's actual plugin source and supplies an in-memory runtime via `createPlugin`. It never contacts Shopify and does not expose store identifiers or credentials. Documentation is static HTML with Alpine used only for navigation filtering, active-section tracking, and copy controls.
+The home demo imports the repository's actual plugin source and supplies an in-memory runtime via `createPlugin`. It never contacts Shopify and does not expose store identifiers or credentials. Its View code dialog loads the cart HTML and TypeScript modules using Vite raw imports, keeping the displayed source in sync with the implementation. The code viewer is excluded from the copied cart markup. Documentation is static HTML with Alpine used only for navigation filtering, active-section tracking, and copy controls.
 
 ## Publish
 

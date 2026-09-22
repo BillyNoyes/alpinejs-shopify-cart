@@ -7,11 +7,11 @@ test('cart controls update plugin state, totals, and empty state without store r
   await page.goto('./');
   const count = page.getByRole('status', { name: 'Cart item count' });
   const total = page.getByRole('status', { name: 'Cart subtotal' });
-  const add = page.getByRole('button', { name: /^Add to cart:/ });
+  const add = page.getByRole('button', { name: 'Add to cart', exact: true });
   await expect(count).toHaveText('1 item');
   await expect(total).toHaveText('£24.00');
   await expect(page.locator('.demo-tabs')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: /^Remove line:/ })).toHaveText('@click="$cart.remove(line.id)"');
+  await expect(page.getByRole('button', { name: 'Remove', exact: true })).toHaveText('Remove');
   await page.getByRole('button', { name: 'Increase quantity', exact: true }).click();
   await expect(count).toHaveText('2 items');
   await expect(total).toHaveText('£48.00');
@@ -21,7 +21,7 @@ test('cart controls update plugin state, totals, and empty state without store r
   await add.click();
   await expect(count).toHaveText('2 items');
   await expect(page.locator('.cart-line')).toHaveCount(1);
-  await page.getByRole('button', { name: /^Remove line:/ }).click();
+  await page.getByRole('button', { name: 'Remove', exact: true }).click();
   await expect(count).toHaveText('0 items');
   await expect(total).toHaveText('£0.00');
   await expect(page.getByText('Your cart is empty.', { exact: false })).toBeVisible();
@@ -42,7 +42,7 @@ test('gift wrap, quantity, and removal operate on the selected line', async ({ p
   const total = page.getByRole('status', { name: 'Cart subtotal' });
   await rows.first().getByRole('checkbox', { name: 'Gift wrap', exact: true }).check();
   await expect(rows.first()).toContainText('Natural / Gift wrapped');
-  await page.getByRole('button', { name: /^Add to cart:/ }).click();
+  await page.getByRole('button', { name: 'Add to cart', exact: true }).click();
   await expect(rows).toHaveCount(2);
   await expect(count).toHaveText('2 items');
   await rows.nth(1).getByRole('button', { name: 'Increase quantity', exact: true }).click();
@@ -53,11 +53,11 @@ test('gift wrap, quantity, and removal operate on the selected line', async ({ p
   expect(await page.locator('.cart-lines').evaluate(el => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.screenshot({ path: info.outputPath('cart-with-two-lines.png'), fullPage: true });
-  await rows.first().getByRole('button', { name: /^Remove line:/ }).click();
+  await rows.first().getByRole('button', { name: 'Remove', exact: true }).click();
   await expect(rows).toHaveCount(1);
   await expect(total).toHaveText('£48.00');
   await expect(rows.first().getByRole('checkbox')).not.toBeChecked();
-  await expect(rows.first().getByRole('button', { name: /^Remove line:/ })).toBeFocused();
+  await expect(rows.first().getByRole('button', { name: 'Remove', exact: true })).toBeFocused();
 });
 
 test('merging matching properties preserves quantity and keyboard focus', async ({ page }) => {
@@ -65,7 +65,7 @@ test('merging matching properties preserves quantity and keyboard focus', async 
   const rows = page.locator('.cart-line');
   await rows.first().getByRole('checkbox').check();
   await expect(rows.first()).toContainText('Gift wrapped');
-  await page.getByRole('button', { name: /^Add to cart:/ }).click();
+  await page.getByRole('button', { name: 'Add to cart', exact: true }).click();
   await expect(rows).toHaveCount(2);
   await rows.nth(1).getByRole('checkbox').check();
   await expect(rows).toHaveCount(1);
@@ -78,7 +78,7 @@ test('merging matching properties preserves quantity and keyboard focus', async 
 
 test('demo prevents repeated pending actions and explains its quantity limit', async ({ page }) => {
   await page.goto('./');
-  const add = page.getByRole('button', { name: /^Add to cart:/ });
+  const add = page.getByRole('button', { name: 'Add to cart', exact: true });
   const count = page.getByRole('status', { name: 'Cart item count' });
   await expect(add).toBeEnabled();
   await add.evaluate((button: HTMLButtonElement) => { button.click(); button.click(); });

@@ -85,14 +85,25 @@
   .button:active { transform: translateY(1px); }
   .demo { min-width: 0; }
   .demo-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .75rem; font-size: .8125rem; color: var(--muted); }
-  .demo-label h2 { font: inherit; color: var(--ink); }
+  .demo-label > h2 { font: inherit; color: var(--ink); }
+  .source-trigger { text-decoration: underline; text-underline-offset: .25em; padding: .125rem .25rem; color: var(--muted); }
+  .source-trigger:hover { color: var(--ink); }
+  .source-dialog { position: fixed; inset: 0; margin: auto; width: min(60rem, calc(100% - 2rem)); max-width: none; height: min(48rem, calc(100dvh - 2rem)); max-height: none; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--canvas); color: var(--ink); font-size: 1rem; }
+  .source-dialog[open] { display: flex; flex-direction: column; }
+  .source-dialog::backdrop { background: rgb(0 0 0 / .5); }
+  .source-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--line); }
+  .source-header h2 { font-size: 1.25rem; font-weight: 700; }
+  .source-header .button { min-height: 36px; padding-block: .375rem; }
+  .source-body { min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 1.25rem; }
+  .source-body > p { color: var(--muted); font-size: .875rem; }
+  .source-context { margin-top: .75rem; }
+  .source-context a { color: var(--ink); text-decoration: underline; }
   .demo-frame { border: 1px solid var(--line); border-radius: 8px; overflow: clip; }
   .cart-heading { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; font-size: .9375rem; }
   .cart-heading output { color: var(--muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
   .demo-add { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .875rem 1.25rem; background: var(--surface); }
   .demo-add p, .cart-line-heading p { font-size: .875rem; }
   .demo-add small, .cart-line-heading small, .cart-total small { display: block; color: var(--muted); font-size: .75rem; }
-  .code-action, .code-action code { font-size: .75rem; }
   .cart-lines { min-height: 142px; max-height: 270px; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: var(--line) transparent; scrollbar-width: thin; position: relative; }
   .cart-lines:focus-visible { outline-offset: -4px; }
   .cart-line { padding: .875rem 1.25rem; }
@@ -108,7 +119,7 @@
   .gift-wrap { display: flex; align-items: center; gap: .5rem; min-height: 32px; cursor: pointer; font-size: .8125rem; }
   .gift-wrap input { width: 16px; height: 16px; accent-color: var(--ink); }
   .gift-wrap:has(input:disabled) { opacity: .45; cursor: not-allowed; }
-  .remove-line { display: block; padding-block: .125rem; margin-top: .125rem; text-decoration: underline; text-underline-offset: .25em; color: var(--muted); }
+  .remove-line { display: block; font-size: .8125rem; padding-block: .125rem; margin-top: .125rem; text-decoration: underline; text-underline-offset: .25em; color: var(--muted); }
   .remove-line:hover:not(:disabled) { color: var(--ink); }
   .cart-empty { display: grid; place-content: center; height: 100%; min-height: 142px; gap: .25rem; text-align: center; color: var(--muted); font-size: .875rem; }
   .cart-empty span { font-size: .75rem; }
@@ -177,6 +188,7 @@
   .site-header { padding-block: .75rem; min-height: 56px; }
   .home-main { padding-block: .5rem; }
   .hero-title { font-size: 2.5rem; }
+  .demo-label { margin-bottom: .5rem; }
   .cart-heading { padding: .5rem 1rem; }
   .demo-add { padding: .5rem 1rem; }
   .cart-line { padding: .625rem 1rem; }
@@ -193,6 +205,8 @@
   .cart-heading, .demo-add, .cart-line, .cart-total, .cart-bindings { padding-inline: 1rem; }
   .cart-bindings { flex-direction: column; }
   .cart-lines { height: auto; max-height: none; min-height: 142px; }
+  .source-body { padding: 1rem; }
+  .source-body pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 }
 
 @media (prefers-reduced-motion: no-preference) {

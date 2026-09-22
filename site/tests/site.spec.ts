@@ -9,7 +9,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
       const errors: string[] = [];
       page.on('pageerror', error => errors.push(error.message));
       await page.goto('./');
-      await expect(page.getByRole('button', { name: /^Add to cart:/ })).toBeEnabled();
+      await expect(page.getByRole('button', { name: 'Add to cart', exact: true })).toBeEnabled();
       await page.evaluate(() => document.fonts.ready);
       expect(await page.evaluate(() => document.fonts.check('16px Inter'))).toBe(true);
       const size = await page.evaluate(() => ({
@@ -38,7 +38,7 @@ test('header, footer, and homepage links match the site copy', async ({ page }) 
     await expect(page.locator('footer').getByRole('link', { name: 'Billy Noyes', exact: true })).toHaveAttribute('href', 'https://billynoyes.co.uk/');
   }
   await page.goto('./');
-  await expect(page.getByRole('button', { name: /^Add to cart:/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Add to cart', exact: true })).toBeEnabled();
   await expect(page.getByRole('link', { name: 'Get started', exact: true })).toHaveAttribute('href', './docs/');
   await expect(page.getByText('Built on Shopify standards', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Local demo, no checkout', { exact: true })).toHaveCount(0);

@@ -37,7 +37,29 @@
             </div>
           </div>
           <section class="demo" x-data="cartDemo($el)" data-cart-demo aria-labelledby="demo-title">
-            <div class="demo-label"><h2 id="demo-title">See the magic.</h2></div>
+            <div class="demo-label">
+              <h2 id="demo-title">See the magic.</h2>
+              <div x-data="sourceViewer($el)" data-source-viewer>
+                <button type="button" class="source-trigger" @click="open" aria-haspopup="dialog" aria-controls="cart-source" x-cloak>View code</button>
+                <dialog id="cart-source" class="source-dialog" aria-labelledby="source-title" aria-describedby="source-intro" @close="closed">
+                  <header class="source-header">
+                    <h2 id="source-title">Under the hood</h2>
+                    <button type="button" class="button" @click="close" autofocus>Close</button>
+                  </header>
+                  <div class="source-body">
+                    <p id="source-intro">The cart markup and Alpine code used on this page, with the code viewer omitted. The demo transport runs locally; it does not connect to a Shopify store.</p>
+                    <p class="source-context">These are the site’s TypeScript modules, not a standalone theme snippet. They use the repository’s plugin source and <a href="https://github.com/BillyNoyes/alpinejs-shopify-cart/blob/main/site/src/style.css">site styles</a>. For a Shopify theme, follow the <a href="./docs/#installation">installation guide</a>.</p>
+                    <template x-for="file in files" :key="file.name">
+                      <div class="code-block" x-data="copyCode($el)">
+                        <div class="code-toolbar"><span x-text="file.name"></span><button type="button" @click="copy" :disabled="pending" :aria-label="'Copy ' + file.name">Copy</button></div>
+                        <pre tabindex="0" :aria-label="file.name"><code x-text="file.code"></code></pre>
+                        <div class="copy-status" role="status" x-text="status"></div>
+                      </div>
+                    </template>
+                  </div>
+                </dialog>
+              </div>
+            </div>
             <div class="demo-frame">
               <div class="cart-heading">
                 <h3>Your cart</h3>
@@ -45,7 +67,7 @@
               </div>
               <div class="demo-add">
                 <div><p>Canvas tote</p><small>Example product / £24.00 each</small></div>
-                <button type="button" class="button button-primary code-action" data-cart-action="add" @click="add" :disabled="!canAdd" aria-label='Add to cart: @click="$cart.add(item)"' disabled><code>@click="$cart.add(item)"</code></button>
+                <button type="button" class="button button-primary" data-cart-action="add" @click="add" :disabled="!canAdd" disabled>Add to cart</button>
               </div>
               <div class="cart-lines" role="region" aria-label="Cart items" tabindex="0" :aria-busy="$cart.pending">
                 <p class="cart-empty" x-show="!$cart.ready" x-cloak>Loading example cart…</p>
@@ -59,13 +81,13 @@
                       </div>
                       <div class="cart-line-controls">
                         <div class="quantity-control" role="group" aria-label="Line quantity">
-                          <button type="button" data-cart-action="decrease" @click="updateQuantity(line.id, -1)" :disabled="disabled" aria-label="Decrease quantity" title="$cart.update({ id: line.id, quantity: line.quantity - 1 })">−</button>
+                          <button type="button" data-cart-action="decrease" @click="updateQuantity(line.id, -1)" :disabled="disabled" aria-label="Decrease quantity" title="Decrease quantity">−</button>
                           <output aria-label="Line quantity" x-text="line.quantity"></output>
-                          <button type="button" data-cart-action="increase" @click="updateQuantity(line.id, 1)" :disabled="!canAdd" aria-label="Increase quantity" title="$cart.update({ id: line.id, quantity: line.quantity + 1 })">+</button>
+                          <button type="button" data-cart-action="increase" @click="updateQuantity(line.id, 1)" :disabled="!canAdd" aria-label="Increase quantity" title="Increase quantity">+</button>
                         </div>
                         <label class="gift-wrap"><input type="checkbox" data-cart-action="wrap" :checked="line.giftWrap" @change="wrap(line.id, $el)" :disabled="disabled"> Gift wrap</label>
                       </div>
-                      <button type="button" class="code-action remove-line" data-cart-action="remove" @click="remove(line.id)" :disabled="disabled" aria-label='Remove line: @click="$cart.remove(line.id)"'><code>@click="$cart.remove(line.id)"</code></button>
+                      <button type="button" class="remove-line" data-cart-action="remove" @click="remove(line.id)" :disabled="disabled">Remove</button>
                     </li>
                   </template>
                 </ul>
