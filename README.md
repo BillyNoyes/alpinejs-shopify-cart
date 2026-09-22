@@ -189,6 +189,10 @@ The source is split into registration (`index.js`), Shopify transport (`actions.
 
 See [the site guide](https://github.com/BillyNoyes/alpinejs-shopify-cart/blob/main/site/README.md), [the development plan](https://github.com/BillyNoyes/alpinejs-shopify-cart/blob/main/PLAN.md), and [the Shopify contract](https://github.com/BillyNoyes/alpinejs-shopify-cart/blob/main/docs/SHOPIFY_STANDARD_CONTRACT.md).
 
+## Publishing
+
+Maintainers: follow the [release guide](https://github.com/BillyNoyes/alpinejs-shopify-cart/blob/main/docs/RELEASING.md) for first-package bootstrapping, npm trusted publishing, and tagged releases. Pushing to `main` does not publish the package.
+
 ## References
 
 - [Shopify standard events and actions](https://shopify.dev/docs/storefronts/themes/best-practices/standard-events-and-actions)

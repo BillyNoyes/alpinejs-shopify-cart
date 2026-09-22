@@ -57,11 +57,12 @@
     "node": ">=20.0.0"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "author": "Billy Noyes",
   "license": "MIT",
-  "homepage": "https://github.com/BillyNoyes/alpinejs-shopify-cart#readme",
+  "homepage": "https://alpinejs-cart.billynoyes.co.uk/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/BillyNoyes/alpinejs-shopify-cart.git"
