@@ -1,133 +1,86 @@
 import { createPlugin } from '../../src/index.js';
 import type { Alpine } from 'alpinejs';
-import type { CartAttributeInput, CartOperationOptions, UpdateCartPayload, ShopifyCartStore } from '../../index';
-
-interface DemoLine {
-  id: string;
-  quantity: number;
-  attributes: CartAttributeInput[];
-}
-
-type DemoAction = 'add' | 'update' | 'properties' | 'remove';
+import type { ShopifyCartStore, UpdateCartResult } from '../../index';
+import { createDemoRuntime } from './demo-runtime';
 
 export function installDemo(Alpine: Alpine) {
-  let lines: DemoLine[] = [];
-  let nextId = 0;
-  const target = new EventTarget();
-  const totalQuantity = () => lines.reduce((total, line) => total + line.quantity, 0);
-  const sameAttributes = (left: CartAttributeInput[], right: CartAttributeInput[]) =>
-    JSON.stringify(left) === JSON.stringify(right);
-  const snapshot = () => ({
-    cart: {
-      id: 'demo-cart',
-      totalQuantity: totalQuantity(),
-      cost: { totalAmount: { amount: (totalQuantity() * 24).toFixed(2), currencyCode: 'GBP' } },
-      lines: lines.map(({ id, quantity }) => ({
-        id, quantity,
-        cost: { totalAmount: { amount: (quantity * 24).toFixed(2), currencyCode: 'GBP' } },
-      })),
-      discountCodes: [],
-    },
-  });
-  const actions = {
-    async getCart() { return snapshot(); },
-    async updateCart(payload: UpdateCartPayload, options: CartOperationOptions = {}) {
-      const input = payload.lines?.[0];
-      if (!input) throw new Error('Choose a cart operation.');
-      const existing = input.id ? lines.find(line => line.id === input.id) : undefined;
-      if (input.id && !existing) throw new Error('That example line no longer exists.');
-      let settle!: (value: ReturnType<typeof snapshot>) => void;
-      const promise = new Promise<ReturnType<typeof snapshot>>(resolve => { settle = resolve; });
-      target.dispatchEvent(Object.assign(new Event('shopify:cart:lines-update'), {
-        action: input.id ? (input.quantity === 0 ? 'remove' : 'update') : 'add',
-        context: 'product', lines: [input], promise, detail: options.event?.detail,
-      }));
-      await new Promise(resolve => setTimeout(resolve, 180));
-
-      const attributes = (input.attributes ?? existing?.attributes ?? []).map(attribute => ({ ...attribute }));
-      if (existing) {
-        existing.quantity = input.quantity;
-        existing.attributes = attributes;
-      } else {
-        const matching = lines.find(line => sameAttributes(line.attributes, attributes));
-        if (matching) matching.quantity += input.quantity;
-        else lines.push({ id: `demo-line-${++nextId}`, quantity: input.quantity, attributes });
-      }
-      lines = lines.filter(line => line.quantity > 0);
-      if (lines.length === 2 && sameAttributes(lines[0].attributes, lines[1].attributes)) {
-        lines[0].quantity += lines[1].quantity;
-        lines.pop();
-      }
-      const result = snapshot();
-      settle(result);
-      return result;
-    },
-    async openCart() {},
-  };
-
-  // Only the transport is simulated; the demo exercises the package's actual store and magic.
+  const runtime = createDemoRuntime();
+  // Only the transport is simulated; every control uses the package's real store and magic.
   Alpine.plugin(createPlugin({
-    getWindow: () => ({ Shopify: { actions } }),
-    getDocument: () => target,
+    getWindow: () => ({ Shopify: { actions: runtime.actions } }),
+    getDocument: () => runtime.events,
   }));
   const cart = () => Alpine.store('shopifyCart') as ShopifyCartStore;
+  const formatter = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
-  Alpine.data('cartDemo', () => ({
-    action: 'add' as DemoAction,
-    giftWrap: false,
-    message: '',
-    get snippet() {
-      const attributes = this.giftWrap ? "[{ key: 'Gift wrap', value: 'Yes' }]" : '[]';
-      const snippets: Record<DemoAction, string> = {
-        add: `<button @click="$cart.add({\n  merchandiseId: variantId,\n  quantity: 1,\n  attributes: ${attributes}\n})">Add to cart</button>`,
-        update: '<button @click="$cart.update({\n  id: line.id,\n  quantity: line.quantity + 1\n})">Increase quantity</button>',
-        properties: `<button @click="$cart.update({\n  id: line.id,\n  quantity: line.quantity,\n  attributes: ${attributes}\n})">Save properties</button>`,
-        remove: '<button @click="$cart.remove(line.id)">\n  Remove from cart\n</button>',
-      };
-      return snippets[this.action];
-    },
-    get label() {
-      return { add: 'Add to cart', update: 'Increase quantity', properties: 'Save properties', remove: 'Remove item' }[this.action];
-    },
-    get giftWrapCount() {
-      // The standard summary omits attributes; the simulator supplies its own product-property data.
-      return cart().lines.reduce((total, line) => {
-        const properties = lines.find(item => item.id === line.id)?.attributes ?? [];
-        return total + (properties.some(attribute => attribute.key === 'Gift wrap' && attribute.value === 'Yes') ? line.quantity : 0);
-      }, 0);
-    },
-    selectAction(action: DemoAction) {
-      this.action = action;
-      this.message = action === 'add' ? '' : 'This operation applies to the first cart line.';
-      if (action === 'properties') {
-        const first = lines.find(line => line.id === cart().lines[0]?.id);
-        this.giftWrap = first?.attributes.some(attribute => attribute.key === 'Gift wrap' && attribute.value === 'Yes') ?? false;
-      }
-    },
-    get disabled() {
-      const store = cart();
-      return !store.ready || store.pending ||
-        (this.action !== 'add' && store.totalQuantity === 0) ||
-        (['add', 'update'].includes(this.action) && store.totalQuantity >= 9);
-    },
-    async run() {
-      const store = cart();
-      if (this.disabled) return;
-      const action = this.action;
-      const attributes = this.giftWrap ? [{ key: 'Gift wrap', value: 'Yes' }] : [];
-      const first = store.lines[0];
-      this.message = 'Updating the local cart…';
-      try {
-        if (action === 'add') await store.add({ merchandiseId: 'demo-variant', quantity: 1, attributes });
-        else if (action === 'update') await store.update({ id: first.id, quantity: first.quantity + 1 });
-        else if (action === 'properties') await store.update({ id: first.id, quantity: first.quantity, attributes });
-        else await store.remove(first.id);
-        this.message = action === 'properties' ? 'Line-item properties saved.' :
-          store.totalQuantity ? 'Cart updated. Every Alpine consumer has the same state.' : 'Item removed. The cart is empty.';
-      } catch {
-        this.message = 'The demo could not update. Reload the page and try again.';
-      }
-    },
-    destroy() { cart().dispose(); },
-  }));
+  Alpine.data('cartDemo', (root: HTMLElement) => {
+    let disposed = false;
+    return {
+      item: { merchandiseId: 'demo-variant', quantity: 1 },
+      message: '',
+      failed: false,
+      get lines() {
+        return cart().lines.map(line => ({
+          ...line,
+          giftWrap: runtime.attributes(line.id).some(attribute => attribute.key === 'Gift wrap' && attribute.value === 'Yes'),
+        }));
+      },
+      get disabled() { return !cart().ready || cart().pending; },
+      get canAdd() { return !this.disabled && cart().totalQuantity < 9; },
+      money(amount: string | undefined) { return formatter.format(Number(amount ?? 0)); },
+      async perform(operation: () => Promise<UpdateCartResult>, success: string) {
+        if (this.disabled) return;
+        const focused = document.activeElement as HTMLElement | null;
+        const focusAction = focused?.dataset.cartAction;
+        this.message = 'Updating cart…';
+        this.failed = false;
+        try {
+          const result = await operation();
+          if (disposed) return;
+          this.failed = Boolean(result.userErrors?.length);
+          this.message = result.userErrors?.[0]?.message ?? result.warnings?.[0]?.message ??
+            (cart().totalQuantity >= 9 ? 'Demo limit reached: 9 items.' : success);
+        } catch {
+          if (disposed) return;
+          this.failed = true;
+          this.message = 'Could not update this example. Try again.';
+        }
+        await Alpine.nextTick();
+        if (disposed) return;
+        // Removing or merging a line must not strand keyboard focus on the document body.
+        if (focused && !focused.isConnected && document.activeElement === document.body) {
+          const controls = [...root.querySelectorAll<HTMLButtonElement | HTMLInputElement>('[data-cart-action]')];
+          const replacement = controls.find(control => control.dataset.cartAction === focusAction && !control.disabled)
+            ?? root.querySelector<HTMLButtonElement>('[data-cart-action="add"]');
+          replacement?.focus({ preventScroll: true });
+        }
+      },
+      async add() {
+        if (!this.canAdd) return;
+        await this.perform(() => cart().add(this.item), 'Canvas tote added.');
+      },
+      async updateQuantity(id: string, delta: number) {
+        if (this.disabled || (delta > 0 && !this.canAdd)) return;
+        const line = cart().lines.find(line => line.id === id);
+        if (!line) return;
+        await this.perform(() => cart().update({ id, quantity: line.quantity + delta }), 'Quantity updated.');
+      },
+      async wrap(id: string, input: HTMLInputElement) {
+        const checked = input.checked;
+        const line = cart().lines.find(line => line.id === id);
+        if (!line || this.disabled) return;
+        await this.perform(() => cart().update({
+          id, quantity: line.quantity,
+          attributes: checked ? [{ key: 'Gift wrap', value: 'Yes' }] : [],
+        }), checked ? 'Gift wrap added to this line.' : 'Gift wrap removed from this line.');
+        if (!disposed && input.isConnected) {
+          input.checked = this.lines.find(item => item.id === id)?.giftWrap ?? false;
+        }
+      },
+      async remove(id: string) {
+        await this.perform(() => cart().remove(id), 'Line removed.');
+      },
+      destroy() { disposed = true; cart().dispose(); },
+    };
+  });
 }

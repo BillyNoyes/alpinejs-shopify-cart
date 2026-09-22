@@ -36,40 +36,47 @@
               <a href="./docs/" class="button button-primary">Get started</a>
             </div>
           </div>
-          <section class="demo" x-data="cartDemo" data-cart-demo aria-labelledby="demo-title">
+          <section class="demo" x-data="cartDemo($el)" data-cart-demo aria-labelledby="demo-title">
             <div class="demo-label"><h2 id="demo-title">See the magic.</h2></div>
             <div class="demo-frame">
-              <div class="demo-code">
-                <div class="demo-tabs" role="group" aria-label="Choose a cart operation">
-                  <button type="button" @click="selectAction('add')" :disabled="$cart.pending" :aria-pressed="action === 'add'" aria-pressed="true">Add</button>
-                  <button type="button" @click="selectAction('update')" :disabled="$cart.pending" :aria-pressed="action === 'update'" aria-pressed="false">Update</button>
-                  <button type="button" @click="selectAction('properties')" :disabled="$cart.pending" :aria-pressed="action === 'properties'" aria-pressed="false">Properties</button>
-                  <button type="button" @click="selectAction('remove')" :disabled="$cart.pending" :aria-pressed="action === 'remove'" aria-pressed="false">Remove</button>
-                  <span class="ml-auto hidden pr-2 font-mono text-xs text-[var(--muted)] sm:block">HTML</span>
-                </div>
-                <pre tabindex="0" aria-label="Alpine cart example"><code x-text="snippet">&lt;button @click="$cart.add({
-  merchandiseId: variantId,
-  quantity: 1,
-  attributes: []
-})"&gt;Add to cart&lt;/button&gt;</code></pre>
+              <div class="cart-heading">
+                <h3>Your cart</h3>
+                <output aria-label="Cart item count"><span x-text="$cart.totalQuantity">0</span> <span x-text="$cart.totalQuantity === 1 ? 'item' : 'items'">items</span></output>
               </div>
-              <div class="demo-preview">
-                <div class="cart-heading"><span>Your cart</span><output aria-label="Cart item count"><span x-text="$cart.totalQuantity">0</span> <span x-text="$cart.totalQuantity === 1 ? 'item' : 'items'">items</span></output></div>
-                <div class="cart-product">
-                  <div><p>Canvas tote</p><small>Natural / Example product</small></div>
-                  <span class="text-sm tabular-nums">£24.00</span>
-                </div>
-                <div class="demo-properties">
-                  <label><input type="checkbox" x-model="giftWrap" :disabled="$cart.pending || !['add', 'properties'].includes(action)"> Gift wrap</label>
-                  <output aria-label="Gift-wrapped items"><span x-text="giftWrapCount">0</span> gift-wrapped</output>
-                </div>
-                <div class="demo-footer">
-                  <button type="button" class="button button-primary" @click="run" :disabled="disabled" x-text="$cart.pending ? 'Updating…' : label" disabled>Add to cart</button>
-                  <code>$cart.totalQuantity = <span x-text="$cart.totalQuantity">0</span></code>
-                </div>
+              <div class="demo-add">
+                <div><p>Canvas tote</p><small>Example product / £24.00 each</small></div>
+                <button type="button" class="button button-primary code-action" data-cart-action="add" @click="add" :disabled="!canAdd" aria-label='Add to cart: @click="$cart.add(item)"' disabled><code>@click="$cart.add(item)"</code></button>
               </div>
+              <div class="cart-lines" role="region" aria-label="Cart items" tabindex="0" :aria-busy="$cart.pending">
+                <p class="cart-empty" x-show="!$cart.ready" x-cloak>Loading example cart…</p>
+                <p class="cart-empty" x-show="$cart.ready && !lines.length" x-cloak>Your cart is empty.<span>Add a tote to try <code>$cart.add()</code>.</span></p>
+                <ul aria-label="Cart lines">
+                  <template x-for="line in lines" :key="line.id">
+                    <li class="cart-line" :data-line-id="line.id">
+                      <div class="cart-line-heading">
+                        <div><p>Canvas tote</p><small x-text="line.giftWrap ? 'Natural / Gift wrapped' : 'Natural'"></small></div>
+                        <span class="line-price" x-text="money(line.cost.totalAmount.amount)"></span>
+                      </div>
+                      <div class="cart-line-controls">
+                        <div class="quantity-control" role="group" aria-label="Line quantity">
+                          <button type="button" data-cart-action="decrease" @click="updateQuantity(line.id, -1)" :disabled="disabled" aria-label="Decrease quantity" title="$cart.update({ id: line.id, quantity: line.quantity - 1 })">−</button>
+                          <output aria-label="Line quantity" x-text="line.quantity"></output>
+                          <button type="button" data-cart-action="increase" @click="updateQuantity(line.id, 1)" :disabled="!canAdd" aria-label="Increase quantity" title="$cart.update({ id: line.id, quantity: line.quantity + 1 })">+</button>
+                        </div>
+                        <label class="gift-wrap"><input type="checkbox" data-cart-action="wrap" :checked="line.giftWrap" @change="wrap(line.id, $el)" :disabled="disabled"> Gift wrap</label>
+                      </div>
+                      <button type="button" class="code-action remove-line" data-cart-action="remove" @click="remove(line.id)" :disabled="disabled" aria-label='Remove line: @click="$cart.remove(line.id)"'><code>@click="$cart.remove(line.id)"</code></button>
+                    </li>
+                  </template>
+                </ul>
+              </div>
+              <div class="cart-total">
+                <div><p>Subtotal</p><small><code>$cart.cost.totalAmount</code></small></div>
+                <output aria-label="Cart subtotal" x-text="money($cart.cost?.totalAmount.amount)">£0.00</output>
+              </div>
+              <div class="cart-bindings"><code>$cart.totalQuantity = <span x-text="$cart.totalQuantity">0</span></code><code>$cart.pending = <span x-text="$cart.pending">false</span></code></div>
             </div>
-            <p class="demo-status" role="status" x-text="message"></p>
+            <p class="demo-status" role="status" :class="failed && 'demo-error'" x-text="message"></p>
             <noscript><p class="text-sm mt-2">Enable JavaScript for the demo. All documentation is available without it.</p></noscript>
           </section>
         </div>

@@ -28,7 +28,7 @@ A precise, monochrome developer site. Use typography, alignment, working example
 
 ## Interaction and accessibility
 
-The home demo uses the real plugin with fake actions and an isolated EventTarget. It never calls a store. Label example products and the local environment. Preserve empty, pending, disabled, success, and failure states.
+The home demo uses the real plugin with fake actions and an isolated EventTarget. It never calls a store. Start with one illustrative tote so the per-line controls are immediately visible. Display actual lines, quantities, properties, line totals, and a subtotal, not operation tabs. Add/remove buttons show the Alpine API expressions they invoke; thin controller wrappers handle status messages and focus. Keep the example product labelled, preserve empty/pending/disabled/success/failure states, and restore keyboard focus when a line is removed or merged. The cart region grows up to a bounded height on desktop while mobile content flows naturally.
 
 Docs filtering only filters section navigation, not article content. Native links own URLs and browser history. Copy buttons report success and failure through a live region. Retain selectable code when clipboard access fails. All docs remain readable without JavaScript.
 
