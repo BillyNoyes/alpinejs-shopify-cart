@@ -39,23 +39,34 @@
 <h1>Documentation</h1>
 <p class="lede">One reactive cart. From the first add to the next update.</p>
 <section id="getting-started" tabindex="-1"><h2>A cart shared across your theme.</h2><p><code>$cart</code> gives Alpine components a shared, reactive view of a Shopify cart. Reads, writes, and opening the cart go through Shopify’s standard storefront actions. The theme stays in charge of its HTML and cart presentation.</p>
-<p>You need Alpine.js 3 and a Shopify Liquid storefront with <code>Shopify.actions</code>. This is not a headless Storefront API client, a Shopify Admin integration, or a checkout extension.</p></section><section id="installation" tabindex="-1"><h2>Install from source</h2><p>Until a package release is available, build the current main branch locally.</p><div class="code-block" x-data="copyCode($el)">
+<p>You need Alpine.js 3 and a Shopify Liquid storefront with <code>Shopify.actions</code>. This is not a headless Storefront API client, a Shopify Admin integration, or a checkout extension.</p></section><section id="installation" tabindex="-1"><h2>Install the plugin</h2>
+<p>Choose npm for a bundled theme, or use the CDN scripts directly. Both approaches require a Shopify Liquid storefront with standard storefront actions.</p>
+<p><strong>Load Alpine only once.</strong> If your theme already starts Alpine, register the plugin in that setup rather than adding a second copy or calling <code>Alpine.start()</code> again.</p>
+<h3>npm</h3><p><a href="https://www.npmjs.com/package/alpinejs-shopify-cart">Get alpinejs-shopify-cart on npm</a>, then register it before starting Alpine.</p>
+<div class="code-block" x-data="copyCode($el)">
 <div class="code-toolbar"><span>Terminal</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Terminal">Copy</button></div>
-<pre tabindex="0" aria-label="Terminal"><code>git clone https://github.com/BillyNoyes/alpinejs-shopify-cart.git
-cd alpinejs-shopify-cart
-npm ci
-npm run build</code></pre>
-<div class="copy-status" role="status" x-text="status"></div></div><h3>Use theme assets</h3><p>Copy <code>dist/alpinejs-shopify-cart.min.js</code> into your theme’s <code>assets/</code> directory. Add Alpine’s CDN build to that directory as <code>alpine.js</code>. Load the plugin before Alpine, and load Alpine only once.</p><div class="code-block" x-data="copyCode($el)">
-<div class="code-toolbar"><span>layout/theme.liquid</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy layout/theme.liquid">Copy</button></div>
-<pre tabindex="0" aria-label="layout/theme.liquid"><code>&lt;script defer src=&quot;{{ &#x27;alpinejs-shopify-cart.min.js&#x27; | asset_url }}&quot;&gt;&lt;/script&gt;
-&lt;script defer src=&quot;{{ &#x27;alpine.js&#x27; | asset_url }}&quot;&gt;&lt;/script&gt;</code></pre>
-<div class="copy-status" role="status" x-text="status"></div></div><h3>Use a JavaScript bundle</h3><p>From an application with Alpine installed, import the built ES module using a path relative to your source file. Register the plugin before calling <code>Alpine.start()</code>.</p><div class="code-block" x-data="copyCode($el)">
+<pre tabindex="0" aria-label="Terminal"><code>npm install alpinejs@^3 alpinejs-shopify-cart@1.0.0</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div>
+<div class="code-block" x-data="copyCode($el)">
 <div class="code-toolbar"><span>theme.js</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy theme.js">Copy</button></div>
-<pre tabindex="0" aria-label="theme.js"><code>import Alpine from &#x27;alpinejs&#x27;
-import shopifyCart from &#x27;./vendor/alpinejs-shopify-cart/dist/index.js&#x27;
+<pre tabindex="0" aria-label="theme.js"><code>import Alpine from 'alpinejs'
+import shopifyCart from 'alpinejs-shopify-cart'
 
 Alpine.plugin(shopifyCart)
 Alpine.start()</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div>
+<h3>CDN</h3><p>Include these deferred scripts in your theme layout, with the plugin <strong>before Alpine</strong>. The CDN build registers itself during <code>alpine:init</code>; no separate registration script is needed.</p>
+<div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>CDN script tags</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy CDN script tags">Copy</button></div>
+<pre tabindex="0" aria-label="CDN script tags"><code>&lt;script defer src="https://cdn.jsdelivr.net/npm/alpinejs-shopify-cart@1.0.0/dist/alpinejs-shopify-cart.min.js"&gt;&lt;/script&gt;
+&lt;script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.4/dist/cdn.min.js"&gt;&lt;/script&gt;</code></pre>
+<div class="copy-status" role="status" x-text="status"></div></div>
+<p><a href="https://cdn.jsdelivr.net/npm/alpinejs-shopify-cart@1.0.0/dist/alpinejs-shopify-cart.min.js">Download the version-pinned plugin from jsDelivr</a>. Do not combine CDN Alpine with a second bundled Alpine instance.</p>
+<h3>Serve from theme assets</h3><p>For Shopify-hosted files, install through npm and copy <code>node_modules/alpinejs-shopify-cart/dist/alpinejs-shopify-cart.min.js</code> to your theme’s <code>assets/</code> directory. Copy <code>node_modules/alpinejs/dist/cdn.min.js</code> there as <code>alpine.js</code>. Keep the same loading order:</p>
+<div class="code-block" x-data="copyCode($el)">
+<div class="code-toolbar"><span>layout/theme.liquid</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy layout/theme.liquid">Copy</button></div>
+<pre tabindex="0" aria-label="layout/theme.liquid"><code>&lt;script defer src=&quot;{{ &#x27;alpinejs-shopify-cart.min.js&#x27; | asset_url }}&quot;&gt;&lt;/script&gt;
+&lt;script defer src=&quot;{{ &#x27;alpine.js&#x27; | asset_url }}&quot;&gt;&lt;/script&gt;</code></pre>
 <div class="copy-status" role="status" x-text="status"></div></div><p>The plugin automatically starts a cart read after document and action initialization. Check <code>$cart.error</code> if your runtime is unavailable, and call <code>$cart.refresh()</code> to retry once available.</p></section><section id="reactive-state" tabindex="-1"><h2>Read reactive state</h2><p>Every <code>$cart</code> reference resolves to <code>Alpine.store('shopifyCart')</code>. Updating the cart in one component updates dependent expressions elsewhere.</p><div class="code-block" x-data="copyCode($el)">
 <div class="code-toolbar"><span>Cart count</span><button type="button" @click="copy" :disabled="pending" x-cloak aria-label="Copy Cart count">Copy</button></div>
 <pre tabindex="0" aria-label="Cart count"><code>&lt;div x-data&gt;

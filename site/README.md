@@ -34,7 +34,7 @@ No custom domain has been configured. Vite uses a relative base so assets work b
 
 ## Content maintenance
 
-The package is not published on npm. Installation examples build the current main branch from source. Update these examples and `public/llms.txt` when a release becomes available. Do not introduce an npm/CDN install command before verifying that version exists.
+Installation examples use npm and version-pinned CDN scripts for 1.0.0. Update them and `public/llms.txt` only after verifying the next release exists on npm. Keep the plugin script before Alpine and avoid loading Alpine twice.
 
 The docs describe known limitations such as default Shopify action reloads, snapshot-derived quantities, and disposal semantics. Preserve these qualifiers when editing.
 

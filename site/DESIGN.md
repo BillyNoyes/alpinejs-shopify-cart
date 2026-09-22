@@ -2,7 +2,7 @@
 
 ## Product and audience
 
-Alpine Shopify Cart is an independent, MIT-licensed plugin for Shopify Liquid theme developers. The package is in development, not published on npm. The home page introduces the API through a local interactive demonstration; the docs explain integration and its limits. Do not represent this as an official Shopify, Alpine, or Vercel product.
+Alpine Shopify Cart is an independent, MIT-licensed plugin for Shopify Liquid theme developers. The package is distributed on npm; installation examples pin the released version. The home page introduces the API through a local interactive demonstration; the docs explain integration and its limits. Do not represent this as an official Shopify, Alpine, or Vercel product.
 
 ## Direction
 

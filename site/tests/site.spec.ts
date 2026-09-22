@@ -83,13 +83,25 @@ for (const colorScheme of ['light', 'dark'] as const) {
   }
 }
 
+test('installation documents the published package and version-pinned CDN', async ({ page }) => {
+  await page.goto('./docs/#installation');
+  const installation = page.locator('#installation');
+  await expect(installation).toContainText("import shopifyCart from 'alpinejs-shopify-cart'");
+  await expect(installation).not.toContainText('git clone');
+  await expect(installation.getByRole('link', { name: 'Get alpinejs-shopify-cart on npm' })).toHaveAttribute('href', 'https://www.npmjs.com/package/alpinejs-shopify-cart');
+  const scripts = await installation.locator('pre[aria-label="CDN script tags"]').textContent();
+  expect(scripts).toContain('alpinejs-shopify-cart@1.0.0/dist/alpinejs-shopify-cart.min.js');
+  expect(scripts!.indexOf('alpinejs-shopify-cart@1.0.0')).toBeLessThan(scripts!.indexOf('alpinejs@3.17.4'));
+  expect(scripts!.match(/<script defer/g)).toHaveLength(2);
+});
+
 test('copy controls support success and failure', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('./docs/#installation');
   const block = page.locator('.code-block').first();
   await block.getByRole('button', { name: 'Copy Terminal' }).click();
   await expect(block.getByRole('status')).toHaveText('Copied to clipboard.');
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('git clone');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('npm install alpinejs@^3 alpinejs-shopify-cart@1.0.0');
   await page.evaluate(() => {
     Object.defineProperty(navigator, 'clipboard', { value: { writeText: () => Promise.reject(new Error('Denied')) } });
   });
