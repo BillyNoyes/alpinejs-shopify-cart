@@ -39,28 +39,10 @@
           <section class="demo" x-data="cartDemo($el)" data-cart-demo aria-labelledby="demo-title">
             <div class="demo-label">
               <h2 id="demo-title">See the magic.</h2>
-              <div x-data="sourceViewer($el)" data-source-viewer>
-                <button type="button" class="source-trigger" @click="open" aria-haspopup="dialog" aria-controls="cart-source" x-cloak>View code</button>
-                <dialog id="cart-source" class="source-dialog" aria-labelledby="source-title" aria-describedby="source-intro" @close="closed">
-                  <header class="source-header">
-                    <h2 id="source-title">Under the hood</h2>
-                    <button type="button" class="button" @click="close" autofocus>Close</button>
-                  </header>
-                  <div class="source-body">
-                    <p id="source-intro">The cart markup and Alpine code used on this page, with the code viewer omitted. The demo transport runs locally; it does not connect to a Shopify store.</p>
-                    <p class="source-context">These are the site’s TypeScript modules, not a standalone theme snippet. They use the repository’s plugin source and <a href="https://github.com/BillyNoyes/alpinejs-shopify-cart/blob/main/site/src/style.css">site styles</a>. For a Shopify theme, follow the <a href="./docs/#installation">installation guide</a>.</p>
-                    <template x-for="file in files" :key="file.name">
-                      <div class="code-block" x-data="copyCode($el)">
-                        <div class="code-toolbar"><span x-text="file.name"></span><button type="button" @click="copy" :disabled="pending" :aria-label="'Copy ' + file.name">Copy</button></div>
-                        <pre tabindex="0" :aria-label="file.name"><code x-text="file.code"></code></pre>
-                        <div class="copy-status" role="status" x-text="status"></div>
-                      </div>
-                    </template>
-                  </div>
-                </dialog>
-              </div>
+              <button type="button" class="demo-view-toggle" @click="codeVisible = !codeVisible" :aria-pressed="codeVisible" aria-controls="cart-demo-panel" x-text="codeVisible ? 'View cart' : 'View code'" x-cloak>View code</button>
             </div>
-            <div class="demo-frame">
+            <div id="cart-demo-panel" class="demo-frame demo-switcher" :data-view="codeVisible ? 'code' : 'cart'" data-view="cart">
+              <div class="demo-live" :inert="codeVisible" :aria-hidden="codeVisible">
               <div class="cart-heading">
                 <h3>Your cart</h3>
                 <output aria-label="Cart item count"><span x-text="$cart.totalQuantity">0</span> <span x-text="$cart.totalQuantity === 1 ? 'item' : 'items'">items</span></output>
@@ -97,6 +79,22 @@
                 <output aria-label="Cart subtotal" x-text="money($cart.cost?.totalAmount.amount)">£0.00</output>
               </div>
               <div class="cart-bindings"><code>$cart.totalQuantity = <span x-text="$cart.totalQuantity">0</span></code><code>$cart.pending = <span x-text="$cart.pending">false</span></code></div>
+              </div>
+              <div class="demo-code-panel" x-data="copyCode($el)" :inert="!codeVisible" :aria-hidden="!codeVisible" inert aria-hidden="true">
+                <div class="code-toolbar"><span>Alpine actions</span><button type="button" @click="copy" :disabled="pending" aria-label="Copy examples">Copy</button></div>
+                <pre tabindex="0" aria-label="Simple cart examples"><code>$cart.add({ merchandiseId: variantId, quantity: 1 })
+
+$cart.update({ id: line.id, quantity: 2 })
+
+$cart.remove(line.id)
+
+$cart.update({
+  id: line.id, quantity: line.quantity,
+  attributes: [{ key: 'Gift wrap', value: 'Yes' }]
+})</code></pre>
+                <p class="demo-code-note">Each call is a separate <code>@click</code> example. Use your <code>variantId</code> and a <code>line</code> from <code>$cart.lines</code>.</p>
+                <div class="copy-status" role="status" x-text="status"></div>
+              </div>
             </div>
             <p class="demo-status" role="status" :class="failed && 'demo-error'" x-text="message"></p>
             <noscript><p class="text-sm mt-2">Enable JavaScript for the demo. All documentation is available without it.</p></noscript>

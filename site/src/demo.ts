@@ -19,6 +19,7 @@ export function installDemo(Alpine: Alpine) {
       item: { merchandiseId: 'demo-variant', quantity: 1 },
       message: '',
       failed: false,
+      codeVisible: false,
       get lines() {
         return cart().lines.map(line => ({
           ...line,
